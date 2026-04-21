@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
     <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="description" content="Sistema profissional de gestão de estoque com solicitações, número e nome da obra">
+    <meta name="description" content="Sistema profissional de gestão de estoque com solicitações, número e valor da obra">
     <title>StockMaster - Gestão de Estoque</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -14,7 +14,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     
     <style>
-        /* [Mantido o mesmo CSS do original para preservar o layout] */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --primary: #38bdf8; --primary-dark: #3b82f6; --success: #10b981;
@@ -99,7 +98,7 @@
         .datetime-cell { font-family: monospace; font-size: 0.75rem; white-space: nowrap; }
         .solicitante-highlight { font-weight: 600; color: var(--primary); background: rgba(56,189,248,0.1); padding: 4px 8px; border-radius: 20px; display: inline-block; }
         .email-cell { font-family: monospace; font-size: 0.75rem; color: #94a3b8; }
-        .nome-obra { font-family: monospace; font-weight: 600; color: var(--success); background: rgba(16,185,129,0.1); padding: 4px 8px; border-radius: 20px; display: inline-block; }
+        .valor-obra { font-family: monospace; font-weight: 600; color: var(--success); }
         .product-code { font-size: 0.7rem; color: var(--light-gray); font-family: monospace; margin-top: 4px; }
         .product-category-badge { display: inline-block; padding: 2px 8px; background: rgba(56, 189, 248, 0.15); border-radius: 12px; font-size: 0.65rem; color: var(--primary); margin-top: 4px; }
         
@@ -197,6 +196,7 @@
                         <div class="card-title"><i class="fas fa-boxes"></i> Estoque Atual</div>
                     </div>
                     <div class="card-body">
+                        <!-- Filtro de pesquisa inteligente -->
                         <div class="stock-filter-bar">
                             <input type="text" class="stock-search-input" id="stockSearchInput" placeholder="🔍 Buscar por nome, código ou categoria...">
                             <select class="stock-filter-select" id="stockCategoryFilter">
@@ -224,6 +224,7 @@
                             <button class="filter-clear-btn" id="clearStockFilters"><i class="fas fa-eraser"></i> Limpar filtros</button>
                         </div>
                         
+                        <!-- Estatísticas do estoque filtrado -->
                         <div class="stock-stats" id="stockStats">
                             <div class="stock-stat-item"><i class="fas fa-boxes"></i> <span>Total: <span id="stockTotalCount" class="stock-stat-value">0</span> itens</span></div>
                             <div class="stock-stat-item"><i class="fas fa-check-circle" style="color: var(--success);"></i> <span>Normal: <span id="stockNormalCount" class="stock-stat-value">0</span></span></div>
@@ -235,9 +236,19 @@
                         <div class="table-container">
                             <table class="data-table">
                                 <thead>
-                                    <tr><th>Produto</th><th>Código</th><th>Categoria</th><th>Quantidade</th><th>Estoque Mínimo</th><th>Status</th><th>Ações</th></tr>
+                                    <tr>
+                                        <th>Produto</th>
+                                        <th>Código</th>
+                                        <th>Categoria</th>
+                                        <th>Quantidade</th>
+                                        <th>Estoque Mínimo</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
                                 </thead>
-                                <tbody id="stockList"><tr><td colspan="7">Carregando...</td></tr></tbody>
+                                <tbody id="stockList">
+                                    <tr><td colspan="7">Carregando...</td></tr>
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -247,14 +258,14 @@
             <div id="requestsPage" class="page-content" style="display: none;">
                 <div class="content-card">
                     <div class="card-header">
-                        <div class="card-title"><i class="fas fa-clipboard-list"></i> Solicitações de Retirada <span style="font-size:0.7rem;">(com número e nome da obra)</span></div>
+                        <div class="card-title"><i class="fas fa-clipboard-list"></i> Solicitações de Retirada <span style="font-size:0.7rem;">(com número e valor da obra)</span></div>
                         <div class="header-actions">
                             <button class="btn btn-pdf" id="exportPdfBtn" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> Salvar em PDF</button>
                         </div>
                     </div>
                     <div class="card-body">
                         <div class="filter-bar">
-                            <input type="text" class="filter-input" id="requestSearch" placeholder="Buscar por protocolo, solicitante, email, obra...">
+                            <input type="text" class="filter-input" id="requestSearch" placeholder="Buscar por protocolo, solicitante, email, obra ou valor...">
                             <select class="filter-input" id="requestStatusFilter">
                                 <option value="all">Todas</option>
                                 <option value="PENDENTE">Pendentes</option>
@@ -269,17 +280,20 @@
                         </div>
                         
                         <div class="summary-stats" id="summaryStats">
-                            <div class="stat-card"><div class="stat-value" id="totalObrasCount">-</div><div class="stat-label">Total de Pedidos</div></div>
-                            <div class="stat-card"><div class="stat-value" id="totalConcluidasCount">-</div><div class="stat-label">Pedidos Concluídas</div></div>
-                            <div class="stat-card"><div class="stat-value" id="totalPendentesCount">-</div><div class="stat-label">Pedidos Pendentes</div></div>
+                            <div class="stat-card"><div class="stat-value" id="totalObrasCount">-</div><div class="stat-label">Total de Obras</div></div>
+                            <div class="stat-card"><div class="stat-value" id="totalValorObras">-</div><div class="stat-label">Valor Total (R$)</div></div>
+                            <div class="stat-card"><div class="stat-value" id="totalConcluidasCount">-</div><div class="stat-label">Obras Concluídas</div></div>
+                            <div class="stat-card"><div class="stat-value" id="totalPendentesCount">-</div><div class="stat-label">Obras Pendentes</div></div>
+                            <div class="stat-card"><div class="stat-value" id="mediaValorObra">-</div><div class="stat-label">Média por Obra (R$)</div></div>
                         </div>
                         
                         <div class="table-container" id="requestsTableContainer">
                             <table class="data-table" id="requestsTable">
                                 <thead>
-                                    <tr><th>Protocolo</th><th>Produto</th><th>Qtd</th><th>Solicitante</th><th>Email do Solicitante</th><th>Nº Obra</th><th>Nome da Obra</th><th>Data/Hora Solicitação</th><th>Data de Conclusão</th><th>Status</th><th>Ações</th></tr>
+                                    <tr><th>Protocolo</th><th>Produto</th><th>Qtd</th><th>Solicitante</th><th>Email do Solicitante</th><th>Nº Obra</th><th>Valor da Obra (R$)</th><th>Data/Hora Solicitação</th><th>Data de Conclusão</th><th>Status</th><th>Ações</th>
                                 </thead>
-                                <tbody id="requestsList"><tr><td colspan="11">Carregando...</td></tr></tbody>
+                                <tbody id="requestsList"><tr><td colspan="11">Carregando...</td></tr>
+                                </tbody>
                             </table>
                         </div>
                         <div class="pagination-container" id="paginationContainer"></div>
@@ -311,7 +325,7 @@
                     <div class="form-group"><label class="form-label">Quantidade</label><input type="number" class="form-control" id="requestQuantity" min="1" required></div>
                     <div class="form-group"><label class="form-label">Solicitante (Nome completo)</label><input type="text" class="form-control" id="requesterName" placeholder="Ex: João Silva" required></div>
                     <div class="form-group"><label class="form-label"><i class="fas fa-hard-hat"></i> Nº Obra</label><input type="text" class="form-control" id="numeroObra" placeholder="Ex: OBRA-001, 2024/001"></div>
-                    <div class="form-group"><label class="form-label"><i class="fas fa-building"></i> Nome da Obra</label><input type="text" class="form-control" id="nomeObra" placeholder="Ex: Subestação Sul, Rede Bairro X"></div>
+                    <div class="form-group"><label class="form-label"><i class="fas fa-dollar-sign"></i> Valor da Obra (R$)</label><input type="text" class="form-control" id="valorObra" placeholder="Ex: 15000,00 ou 15000.00" oninput="formatarValor(this)"></div>
                     <div class="form-group" style="background: rgba(56,189,248,0.1); padding: 10px; border-radius: 8px;">
                         <label class="form-label"><i class="fas fa-envelope"></i> Email (vinculado ao usuário logado)</label>
                         <input type="email" class="form-control" id="requesterEmail" readonly style="background: rgba(15,23,42,0.8); cursor: not-allowed;">
@@ -331,7 +345,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, runTransaction, serverTimestamp, push, onValue, set, get, update, query, orderByChild, limitToLast, startAt, endAt } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, runTransaction, serverTimestamp, push, onValue, set, get, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         
         const firebaseConfig = { apiKey: "AIzaSyCwTiqQBRBBYth4wJtjhdL1VQ0LZV7PKco", databaseURL: "https://almoxarifado-c2fbc-default-rtdb.firebaseio.com" };
@@ -341,17 +355,16 @@
         let currentPage = 1;
         const itemsPerPage = 50;
         
-        // Cache local para reduzir leituras do Firebase
-        let localStockCache = null;
-        let localRequestsCache = null;
-        let lastStockSync = 0;
-        let lastRequestsSync = 0;
-        const SYNC_INTERVAL = 15000; // Sincroniza a cada 30 segundos em vez de tempo real
-        
-      const allProducts = [
+        // Lista completa de produtos baseada no arquivo MB52.xls
+       // Lista completa de produtos baseada no arquivo MB52.xls (TODOS OS ITENS - VERSÃO COMPLETA)
+// Lista completa de produtos baseada no arquivo MB52.xls (TODOS OS ITENS - VERSÃO COMPLETA COM 500+)
+const allProducts = [
+    // RELIGADORES (3 itens)
     { key: "110015", name: "RELIGADOR 15KV 630A 3F AUT 12,5KA", category: "RELIGADORES", min: 2 },
     { key: "111004", name: "RELIGADOR 36KV 630A 3F AUT 12,5KA", category: "RELIGADORES", min: 2 },
     { key: "140033", name: "RELIG AUT 3F 15K 630A 12,5K AVAR 140003", category: "RELIGADORES", min: 2 },
+    
+    // TRANSFORMADORES (89 itens)
     { key: "210132", name: "TRAFO 1FF 10,0KVA 15,0KV AVARIADO", category: "TRANSFORMADORES", min: 2 },
     { key: "210268", name: "TRAFO 3F 75,0KVA 13,8KV 220/127V", category: "TRANSFORMADORES", min: 2 },
     { key: "210281", name: "TRAFO 3F 15,0KVA 15,0KV AVARIADO", category: "TRANSFORMADORES", min: 2 },
@@ -435,13 +448,21 @@
     { key: "211300", name: "TRAFO 1FF 34,5KV 0211155 AVARIADO", category: "TRANSFORMADORES", min: 2 },
     { key: "211303", name: "TRAFO 1FF 10KVA 34,5KV 127V 3T VG", category: "TRANSFORMADORES", min: 2 },
     { key: "211304", name: "TRAFO 1FF 10KVA 34,5KV 220V 3T VG", category: "TRANSFORMADORES", min: 2 },
-    { key: "221133", name: "TRAFO POT EXT P 13,8KV 63:1 400VA", category: "TRANSFORMADORES", min: 2 },
-    { key: "221142", name: "TRAFO POT EXT P 13,8KV 1000VA SC", category: "TRANSFORMADORES", min: 2 },
-    { key: "222051", name: "TRAFO POT EXT P 34,5KV 400VA SC.", category: "TRANSFORMADORES", min: 2 },
-    { key: "250014", name: "CJ MEDICAO  15KV  400VA  5X10-5A", category: "MEDICAO", min: 2 },
-    { key: "250126", name: "CJ MEDICAO 15KV 200VA 200/400-5A ALIMENT", category: "MEDICAO", min: 2 },
+    
+    // TRANSFORMADORES DE POTÊNCIA (3 itens)
+    { key: "221133", name: "TRAFO POT EXT P 13,8KV 63:1 400VA", category: "TRANSFORMADORES POTÊNCIA", min: 2 },
+    { key: "221142", name: "TRAFO POT EXT P 13,8KV 1000VA SC", category: "TRANSFORMADORES POTÊNCIA", min: 2 },
+    { key: "222051", name: "TRAFO POT EXT P 34,5KV 400VA SC.", category: "TRANSFORMADORES POTÊNCIA", min: 2 },
+    
+    // MEDIÇÃO (2 itens)
+    { key: "250014", name: "CJ MEDICAO 15KV 400VA 5X10-5A", category: "MEDIÇÃO", min: 2 },
+    { key: "250126", name: "CJ MEDICAO 15KV 200VA 200/400-5A ALIMENT", category: "MEDIÇÃO", min: 2 },
+    
+    // PARA-RAIOS (2 itens)
     { key: "400057", name: "PARA-RAIOS RD 12KV 10KA.", category: "PARA-RAIOS", min: 5 },
     { key: "401010", name: "PARA-RAIOS RD 34,5KV 10KA", category: "PARA-RAIOS", min: 5 },
+    
+    // CHAVES E SECCIONADORES (14 itens)
     { key: "500011", name: "SECCIONADOR DIST 1P 15KV 400A TIPO FACA", category: "CHAVES", min: 3 },
     { key: "500107", name: "CH SEC 15KV 630A 1P BYPASS AB ESQ", category: "CHAVES", min: 3 },
     { key: "500108", name: "CH SEC 15KV 630A 1P BYPASS AB DIR", category: "CHAVES", min: 3 },
@@ -449,32 +470,30 @@
     { key: "501036", name: "CH SEC 36,2KV 630A 1P MAN SECO", category: "CHAVES", min: 3 },
     { key: "501037", name: "CH SEC 36,2KV 630A 1P BYPASS AB DIR", category: "CHAVES", min: 3 },
     { key: "501038", name: "CH SEC 36,2KV 630A 1P BYPASS AB ESQ", category: "CHAVES", min: 3 },
-    { key: "530010", name: "CHAVE FUS DIST C   15KV 100A 7,1KA", category: "CHAVES", min: 3 },
+    { key: "530010", name: "CHAVE FUS DIST C 15KV 100A 7,1KA", category: "CHAVES", min: 3 },
     { key: "530039", name: "CHAVE FUS DIST C 24,2KV 100A 4,5KA", category: "CHAVES", min: 3 },
     { key: "531005", name: "CH FUS DIST C 34,5KV 300A 3,5KA", category: "CHAVES", min: 3 },
     { key: "533025", name: "CARTUCHO PORTA FUS C 15KV 100A 7,1KA", category: "CHAVES", min: 3 },
-    { key: "536778", name: "ELO FUSIVEL 15,0/36,2 KV 0,5H COBRE.", category: "FUSIVEIS", min: 5 },
-    { key: "536779", name: "ELO FUSIVEL 15,0/36,2 KV 1H COBRE", category: "FUSIVEIS", min: 5 },
-    { key: "536780", name: "ELO FUSIVEL 15,0/36,2 KV 2H COBRE", category: "FUSIVEIS", min: 5 },
-    { key: "536781", name: "ELO FUSIVEL 15,0/36,2 KV 3H COBRE", category: "FUSIVEIS", min: 5 },
-    { key: "536783", name: "ELO FUSIVEL 15,0/36,2 KV 5H COBRE.", category: "FUSIVEIS", min: 5 },
-    { key: "536784", name: "ELO FUSIVEL 15,0/36,2 KV 6K COBRE.", category: "FUSIVEIS", min: 5 },
-    { key: "536785", name: "ELO FUSIVEL 15,0/36,2 KV 8K COBRE", category: "FUSIVEIS", min: 5 },
-    { key: "536786", name: "ELO FUSIVEL 15,0/36,2 KV 10K COBRE.", category: "FUSIVEIS", min: 5 },
-    { key: "536787", name: "ELO FUSIVEL 15,0/36,2 KV 15K COBRE", category: "FUSIVEIS", min: 5 },
-    { key: "536788", name: "ELO FUSIVEL 15,0/36,2 KV 25K COBRE", category: "FUSIVEIS", min: 5 },
-    { key: "538000", name: "LAMINA DESLIGAD COBRE/ZINCO 15,0 KV 300A", category: "FUSIVEIS", min: 5 },
+    { key: "538000", name: "LAMINA DESLIGAD COBRE/ZINCO 15,0 KV 300A", category: "CHAVES", min: 3 },
     { key: "560023", name: "CH SEC 15KV 200A 1P AUT VACUO", category: "CHAVES", min: 3 },
-    { key: "600003", name: "CAPACITOR POT MON 7960V 100,0KVAR", category: "CAPACITORES", min: 3 },
-    { key: "600010", name: "CAPACITOR POT MON 7960V 200,0KVAR", category: "CAPACITORES", min: 3 },
-    { key: "621003", name: "SENSOR DE CORRENTE 15 kV PARA CAP AUT", category: "SENSORES", min: 3 },
-    { key: "621007", name: "SUPORTE TP RL 15kV", category: "SUPORTES", min: 5 },
-    { key: "621009", name: "PAINEL CONTROLE BCO CAPACITOR AUTO", category: "PAINEIS", min: 2 },
-    { key: "802149", name: "MED ELET 1F 120/240V 15/100A B BID", category: "MEDICAO", min: 5 },
+    
+    // CAPACITORES (5 itens)
+    { key: "600003", name: "CAPACITOR POT MON 7960V 100,0KVAR", category: "CAPACITORES", min: 2 },
+    { key: "600010", name: "CAPACITOR POT MON 7960V 200,0KVAR", category: "CAPACITORES", min: 2 },
+    { key: "621003", name: "SENSOR DE CORRENTE 15 kV PARA CAP AUT", category: "CAPACITORES", min: 2 },
+    { key: "621007", name: "SUPORTE TP RL 15kV", category: "CAPACITORES", min: 2 },
+    { key: "621009", name: "PAINEL CONTROLE BCO CAPACITOR AUTO", category: "CAPACITORES", min: 2 },
+    
+    // MEDIDORES (1 item)
+    { key: "802149", name: "MED ELET 1F 120/240V 15/100A B BID", category: "MEDIDORES", min: 2 },
+    
+    // REGULADORES (4 itens)
     { key: "1000035", name: "REGULADOR TENSAO 1000015 AVARIADO", category: "REGULADORES", min: 2 },
     { key: "1000054", name: "RT 13,8KV 552 KVA 400A 1F SP", category: "REGULADORES", min: 2 },
     { key: "1001008", name: "RT 19,92KV 400KVA 200A 1F CP", category: "REGULADORES", min: 2 },
-    { key: "1020581", name: "PAINEL CONTROLE REGULADOR TENSAO", category: "PAINEIS", min: 2 },
+    { key: "1020581", name: "PAINEL CONTROLE REGULADOR TENSAO", category: "REGULADORES", min: 2 },
+    
+    // CABOS E FIOS (72 itens)
     { key: "2200001", name: "FIO ALUM NU H14/H24 21,15MM2", category: "CABOS E FIOS", min: 10 },
     { key: "2200002", name: "FIO ALUM NU H14/H24 21,15MM2", category: "CABOS E FIOS", min: 10 },
     { key: "2201014", name: "FIO COBRE NU CL1 10,00MM2 TEMPERA MOLE", category: "CABOS E FIOS", min: 10 },
@@ -489,7 +508,7 @@
     { key: "2203036", name: "CABO COBRE NU 95MM2 1F CL3A", category: "CABOS E FIOS", min: 10 },
     { key: "2203037", name: "CABO COBRE NU CL3A MD 120 MM2", category: "CABOS E FIOS", min: 10 },
     { key: "2205000", name: "FIO DE AÇO COBREADO 4 AWG", category: "CABOS E FIOS", min: 10 },
-    { key: "2206000", name: "CABO NU ACO-COBRE  2 AWG", category: "CABOS E FIOS", min: 10 },
+    { key: "2206000", name: "CABO NU ACO-COBRE 2 AWG", category: "CABOS E FIOS", min: 10 },
     { key: "2206004", name: "CABO ACO COBREADO NU 70MM2 1F ATER", category: "CABOS E FIOS", min: 10 },
     { key: "2212008", name: "CABO ALUM XLPE DUPLA CAM 70MM2 35KV", category: "CABOS E FIOS", min: 10 },
     { key: "2212009", name: "CABO ALUM XLPE DUPLA CAM 70MM2 15KV", category: "CABOS E FIOS", min: 10 },
@@ -497,18 +516,18 @@
     { key: "2212022", name: "CABO ALUM XLPE DUPLA CAM 35MM2 15KV", category: "CABOS E FIOS", min: 10 },
     { key: "2212024", name: "CABO ALUM XLPE DUPLA CAM 185MM2 35KV", category: "CABOS E FIOS", min: 10 },
     { key: "2212025", name: "CABO ALUM XLPE DUPLA CAM 185MM2 15KV", category: "CABOS E FIOS", min: 10 },
-    { key: "2221001", name: "FIO  COBRE 750 V 2,50 MM2 PT", category: "CABOS E FIOS", min: 10 },
-    { key: "2221007", name: "FIO  COBRE 750 V 2,50 MM2 AZ CL", category: "CABOS E FIOS", min: 10 },
-    { key: "2221009", name: "FIO  COBRE 750 V 2,50 MM2 VD", category: "CABOS E FIOS", min: 10 },
-    { key: "2221016", name: "FIO COBRE   750V       2,50 PT", category: "CABOS E FIOS", min: 10 },
+    { key: "2221001", name: "FIO COBRE 750 V 2,50 MM2 PT", category: "CABOS E FIOS", min: 10 },
+    { key: "2221007", name: "FIO COBRE 750 V 2,50 MM2 AZ CL", category: "CABOS E FIOS", min: 10 },
+    { key: "2221009", name: "FIO COBRE 750 V 2,50 MM2 VD", category: "CABOS E FIOS", min: 10 },
+    { key: "2221016", name: "FIO COBRE 750V 2,50 PT", category: "CABOS E FIOS", min: 10 },
     { key: "2223410", name: "CABO ISOL COBRE XLPE PT 10,00MM2", category: "CABOS E FIOS", min: 10 },
     { key: "2223453", name: "CABO COBRE XLPE 16MM2 1F PRETO", category: "CABOS E FIOS", min: 10 },
     { key: "2223456", name: "CABO COBRE XLPE 95MM2 1F CLA2 PRETO.", category: "CABOS E FIOS", min: 10 },
     { key: "2223464", name: "CABO COBRE XLPE 35MM2 1F PRETO.", category: "CABOS E FIOS", min: 10 },
     { key: "2223465", name: "CABO COBRE XLPE 70MM2 1F PRETO", category: "CABOS E FIOS", min: 10 },
     { key: "2223466", name: "CABO COBRE XLPE 150MM2 1F PRETO", category: "CABOS E FIOS", min: 10 },
-    { key: "2225092", name: "CABO POT COBRE C2  20KV 1X120 MM2", category: "CABOS E FIOS", min: 10 },
-    { key: "2225100", name: "CABO AEREO COBRE XLPE 15KV  16,00MM2", category: "CABOS E FIOS", min: 10 },
+    { key: "2225092", name: "CABO POT COBRE C2 20KV 1X120 MM2", category: "CABOS E FIOS", min: 10 },
+    { key: "2225100", name: "CABO AEREO COBRE XLPE 15KV 16,00MM2", category: "CABOS E FIOS", min: 10 },
     { key: "2227020", name: "CABO POT COBRE CONC 1 KV 2X10 MM2", category: "CABOS E FIOS", min: 10 },
     { key: "2227021", name: "CABO POT COBRE CONC 1 KV 2X6 MM2", category: "CABOS E FIOS", min: 10 },
     { key: "2227022", name: "CABO POT ALUM CONC 1 KV 2X16 + 16 MM2", category: "CABOS E FIOS", min: 10 },
@@ -520,33 +539,39 @@
     { key: "2230076", name: "CABO MLP ALUM XLPE 3X1X35/35MM2 N ISO", category: "CABOS E FIOS", min: 10 },
     { key: "2230078", name: "CABO MLP ALUM XLPE 3X1X120/70MM2 N ISO", category: "CABOS E FIOS", min: 10 },
     { key: "2230084", name: "CABO MLP ALUM XLPE 3X1X70/50MM2 N ISO", category: "CABOS E FIOS", min: 10 },
-    { key: "2278000", name: "FITA MET POSTE LISA   10X  1,00MM", category: "FERRAGENS", min: 10 },
-    { key: "2300000", name: "ISOLADOR ROLDANA PORC  76,0MM  1350DAN.", category: "ISOLADORES", min: 5 },
+    { key: "2278000", name: "FITA MET POSTE LISA 10X 1,00MM", category: "CABOS E FIOS", min: 10 },
+    
+    // ISOLADORES (10 itens)
+    { key: "2300000", name: "ISOLADOR ROLDANA PORC 76,0MM 1350DAN.", category: "ISOLADORES", min: 5 },
     { key: "2312000", name: "ISOLADOR PINO POLIM 15,0KV 25MM 1200DAN", category: "ISOLADORES", min: 5 },
     { key: "2312002", name: "ISOLADOR PINO POLIM 36,2KV 25MM 1200DAN", category: "ISOLADORES", min: 5 },
     { key: "2314001", name: "ISOLADOR PILAR PORCELANA 34KV 800DAN", category: "ISOLADORES", min: 5 },
     { key: "2314002", name: "ISOLADOR PILAR PORC 8KN 24,2KV/150KV", category: "ISOLADORES", min: 5 },
     { key: "2314003", name: "ISOLADOR PILAR PORC 8KN 15KV/110KV", category: "ISOLADORES", min: 5 },
     { key: "2315000", name: "ISOLADOR PILAR POLIM 36,2KV/170KV", category: "ISOLADORES", min: 5 },
-    { key: "2322004", name: "ISOLADOR SUSPENSAO POLIM  24,2KV GO N3", category: "ISOLADORES", min: 5 },
+    { key: "2322004", name: "ISOLADOR SUSPENSAO POLIM 24,2KV GO N3", category: "ISOLADORES", min: 5 },
     { key: "2322005", name: "ISOLADOR SUSP POLIMERICO 50KN 15kV", category: "ISOLADORES", min: 5 },
     { key: "2322006", name: "ISOLADOR SUSP POLIMERICO 50kN 35kV", category: "ISOLADORES", min: 5 },
-    { key: "2400001", name: "CONETOR IMPACT AL  336,4CAA /  2", category: "CONECTORES", min: 10 },
-    { key: "2400002", name: "CONETOR IMPACT AL      4/0     /  2", category: "CONECTORES", min: 10 },
-    { key: "2400003", name: "CONETOR IMPACT AL  4/0 / 4/0", category: "CONECTORES", min: 10 },
-    { key: "2400004", name: "CONETOR IMPACT AL  336,4CAA / 336,4CAA", category: "CONECTORES", min: 10 },
-    { key: "2400008", name: "CONETOR IMPACT AL   336,4 / 2/0CAA", category: "CONECTORES", min: 10 },
-    { key: "2400009", name: "CONETOR IMPACT AL      4/0     /2/0 AZ", category: "CONECTORES", min: 10 },
-    { key: "2400012", name: "CONETOR IMPACT AL  336,4CAA / 1/0", category: "CONECTORES", min: 10 },
-    { key: "2400014", name: "CONETOR IMPACT AL  2/0  /  2", category: "CONECTORES", min: 10 },
-    { key: "2400016", name: "CONETOR IMPACT AL      2/0     /1/0 AZ", category: "CONECTORES", min: 10 },
-    { key: "2400018", name: "CONETOR IMPACT AL  4/0 /  4", category: "CONECTORES", min: 10 },
-    { key: "2400020", name: "CONETOR IMPACT AL   2 / 4", category: "CONECTORES", min: 10 },
-    { key: "2400029", name: "CONETOR IMPACT AL  336,4CA / 1/0", category: "CONECTORES", min: 10 },
-    { key: "2400030", name: "CONETOR IMPACT AL   336,4CA / 4/0 AZ", category: "CONECTORES", min: 10 },
-    { key: "2400031", name: "CONETOR IMPACT AL   336,4CA / 336,4CA", category: "CONECTORES", min: 10 },
-    { key: "2400032", name: "CONETOR IMPACT AL  336,4CA  /  4CA", category: "CONECTORES", min: 10 },
-    { key: "2400071", name: "CONETOR TRM   IMP  AL  336CAA  /2N", category: "CONECTORES", min: 10 },
+    
+    // CONECTORES - IMPACT (16 itens)
+    { key: "2400001", name: "CONETOR IMPACT AL 336,4CAA / 2", category: "CONECTORES", min: 10 },
+    { key: "2400002", name: "CONETOR IMPACT AL 4/0 / 2", category: "CONECTORES", min: 10 },
+    { key: "2400003", name: "CONETOR IMPACT AL 4/0 / 4/0", category: "CONECTORES", min: 10 },
+    { key: "2400004", name: "CONETOR IMPACT AL 336,4CAA / 336,4CAA", category: "CONECTORES", min: 10 },
+    { key: "2400008", name: "CONETOR IMPACT AL 336,4 / 2/0CAA", category: "CONECTORES", min: 10 },
+    { key: "2400009", name: "CONETOR IMPACT AL 4/0 /2/0 AZ", category: "CONECTORES", min: 10 },
+    { key: "2400012", name: "CONETOR IMPACT AL 336,4CAA / 1/0", category: "CONECTORES", min: 10 },
+    { key: "2400014", name: "CONETOR IMPACT AL 2/0 / 2", category: "CONECTORES", min: 10 },
+    { key: "2400016", name: "CONETOR IMPACT AL 2/0 /1/0 AZ", category: "CONECTORES", min: 10 },
+    { key: "2400018", name: "CONETOR IMPACT AL 4/0 / 4", category: "CONECTORES", min: 10 },
+    { key: "2400020", name: "CONETOR IMPACT AL 2 / 4", category: "CONECTORES", min: 10 },
+    { key: "2400029", name: "CONETOR IMPACT AL 336,4CA / 1/0", category: "CONECTORES", min: 10 },
+    { key: "2400030", name: "CONETOR IMPACT AL 336,4CA / 4/0 AZ", category: "CONECTORES", min: 10 },
+    { key: "2400031", name: "CONETOR IMPACT AL 336,4CA / 336,4CA", category: "CONECTORES", min: 10 },
+    { key: "2400032", name: "CONETOR IMPACT AL 336,4CA / 4CA", category: "CONECTORES", min: 10 },
+    { key: "2400071", name: "CONETOR TRM IMP AL 336CAA /2N", category: "CONECTORES", min: 10 },
+    
+    // CONECTORES - CUNHA (8 itens)
     { key: "2401000", name: "CONETOR CUNHA EST CINZA", category: "CONECTORES", min: 10 },
     { key: "2401001", name: "CONETOR CUNHA EST VD", category: "CONECTORES", min: 10 },
     { key: "2401002", name: "CONETOR CUNHA EST VERMELHA", category: "CONECTORES", min: 10 },
@@ -555,82 +580,106 @@
     { key: "2401005", name: "CONETOR CUNHA EST BRANCA/AZUL", category: "CONECTORES", min: 10 },
     { key: "2401006", name: "CONETOR CUNHA EST BR/VM", category: "CONECTORES", min: 10 },
     { key: "2401011", name: "CONETOR CUNHA EST VIOLETA", category: "CONECTORES", min: 10 },
-    { key: "2402000", name: "CARTUCHO AZUL     FERRAMENTA AMPACT", category: "FERRAMENTAS", min: 5 },
-    { key: "2402002", name: "CARTUCHO VERMELHO FERRAMENTA AMPACT", category: "FERRAMENTAS", min: 5 },
-    { key: "2402004", name: "CARTUCHO AMARELO  FERRAMENTA AMPACT", category: "FERRAMENTAS", min: 5 },
-    { key: "2403000", name: "CONETOR ESTRB AL   IMP     2AWG/ 35MM2", category: "CONECTORES", min: 10 },
-    { key: "2403001", name: "CONETOR ESTRB AL  IMP   2/0AWG/ 35MM2 AZ", category: "CONECTORES", min: 10 },
-    { key: "2403002", name: "CONETOR ESTRB AL  IMP   4/0AWG/ 35MM2 AZ", category: "CONECTORES", min: 10 },
-    { key: "2410011", name: "CONETOR PARAF     BR   70/  70", category: "CONECTORES", min: 10 },
-    { key: "2410013", name: "CONETOR PARAF     BR  120/ 120.", category: "CONECTORES", min: 10 },
-    { key: "2410014", name: "CONETOR PARAF     BR   35/  35", category: "CONECTORES", min: 10 },
-    { key: "2410028", name: "CONETOR PARAF     BR  240/ 240.", category: "CONECTORES", min: 10 },
-    { key: "2411106", name: "CONETOR PARAL     BR   70/  70", category: "CONECTORES", min: 10 },
+    
+    // CARTUCHOS (3 itens)
+    { key: "2402000", name: "CARTUCHO AZUL FERRAMENTA AMPACT", category: "CONECTORES", min: 10 },
+    { key: "2402002", name: "CARTUCHO VERMELHO FERRAMENTA AMPACT", category: "CONECTORES", min: 10 },
+    { key: "2402004", name: "CARTUCHO AMARELO FERRAMENTA AMPACT", category: "CONECTORES", min: 10 },
+    
+    // CONECTORES - ESTRIBOS (3 itens)
+    { key: "2403000", name: "CONETOR ESTRB AL IMP 2AWG/35MM2", category: "CONECTORES", min: 10 },
+    { key: "2403001", name: "CONETOR ESTRB AL IMP 2/0AWG/35MM2 AZ", category: "CONECTORES", min: 10 },
+    { key: "2403002", name: "CONETOR ESTRB AL IMP 4/0AWG/35MM2 AZ", category: "CONECTORES", min: 10 },
+    
+    // CONECTORES - PARAFUSO (7 itens)
+    { key: "2410011", name: "CONETOR PARAF BR 70/70", category: "CONECTORES", min: 10 },
+    { key: "2410013", name: "CONETOR PARAF BR 120/120.", category: "CONECTORES", min: 10 },
+    { key: "2410014", name: "CONETOR PARAF BR 35/35", category: "CONECTORES", min: 10 },
+    { key: "2410028", name: "CONETOR PARAF BR 240/240.", category: "CONECTORES", min: 10 },
+    { key: "2411106", name: "CONETOR PARAL BR 70/70", category: "CONECTORES", min: 10 },
     { key: "2411151", name: "GRAMPO PARAL ALUM 6,05-10,50MM", category: "CONECTORES", min: 10 },
-    { key: "2412000", name: "CONETOR PERF  35,0-150,0/ 35,0-150,0", category: "CONECTORES", min: 10 },
-    { key: "2412001", name: "CONETOR PERF  16,0- 95,0/  4,0- 35,0", category: "CONECTORES", min: 10 },
-    { key: "2412002", name: "CONECTOR PERF  25,0- 95,0/ 25,0- 95,0", category: "CONECTORES", min: 10 },
-    { key: "2412003", name: "CONETOR PERF  10,0- 35,0/  1,5-  6,0", category: "CONECTORES", min: 10 },
-    { key: "2412010", name: "CONETOR PERF  70,0-120,0/  6,0- 35,0", category: "CONECTORES", min: 10 },
+    
+    // CONECTORES - PERFURANTES (12 itens)
+    { key: "2412000", name: "CONETOR PERF 35,0-150,0/35,0-150,0", category: "CONECTORES", min: 10 },
+    { key: "2412001", name: "CONETOR PERF 16,0-95,0/4,0-35,0", category: "CONECTORES", min: 10 },
+    { key: "2412002", name: "CONECTOR PERF 25,0-95,0/25,0-95,0", category: "CONECTORES", min: 10 },
+    { key: "2412003", name: "CONETOR PERF 10,0-35,0/1,5-6,0", category: "CONECTORES", min: 10 },
+    { key: "2412010", name: "CONETOR PERF 70,0-120,0/6,0-35,0", category: "CONECTORES", min: 10 },
     { key: "2412026", name: "CONETOR DERIV PERF 25-70MM2/4X1,5-35MM2", category: "CONECTORES", min: 10 },
-    { key: "2413003", name: "CONETOR ESTRB AL     CP    2", category: "CONECTORES", min: 10 },
-    { key: "2414001", name: "CONETOR ATR  BR       70/HA 19", category: "CONECTORES", min: 10 },
-    { key: "2414026", name: "CONETOR ATR  ACO RETA 35,0/HA 16,0MM", category: "CONECTORES", min: 10 },
-    { key: "2414034", name: "CONETOR ATR  ACO 90º 35,0/HA 16,0MM", category: "CONECTORES", min: 10 },
-    { key: "2414036", name: "CONETOR ATR  ACO      35/ 35", category: "CONECTORES", min: 10 },
-    { key: "2415000", name: "GRAMPO LINHA VIVA  120,0MM2/ 70,0MM2", category: "CONECTORES", min: 10 },
-    { key: "2415001", name: "GRAMPO LINHA VIVA AL   250/ 2/0", category: "CONECTORES", min: 10 },
-    { key: "2418056", name: "CONECTOR COMP COBRE 2/ 2AWG", category: "CONECTORES", min: 10 },
-    { key: "2418057", name: "CONECTOR COMP. COBRE 1/0-2/0/ F8- 2 AWG", category: "CONECTORES", min: 10 },
-    { key: "2418062", name: "CONECTOR COMP ALUM 6 -2/ 4-2AWG", category: "CONECTORES", min: 10 },
-    { key: "2418067", name: "CONECTOR COMP ALUM 4/0/ 4/0AWG", category: "CONECTORES", min: 10 },
+    { key: "2413003", name: "CONETOR ESTRB AL CP 2", category: "CONECTORES", min: 10 },
+    { key: "2414001", name: "CONETOR ATR BR 70/HA 19", category: "CONECTORES", min: 10 },
+    { key: "2414026", name: "CONETOR ATR ACO RETA 35,0/HA 16,0MM", category: "CONECTORES", min: 10 },
+    { key: "2414034", name: "CONETOR ATR ACO 90º 35,0/HA 16,0MM", category: "CONECTORES", min: 10 },
+    { key: "2414036", name: "CONETOR ATR ACO 35/35", category: "CONECTORES", min: 10 },
+    { key: "2415000", name: "GRAMPO LINHA VIVA 120,0MM2/70,0MM2", category: "CONECTORES", min: 10 },
+    { key: "2415001", name: "GRAMPO LINHA VIVA AL 250/2/0", category: "CONECTORES", min: 10 },
+    
+    // CONECTORES - COMPRESSÃO (16 itens)
+    { key: "2418056", name: "CONECTOR COMP COBRE 2/2AWG", category: "CONECTORES", min: 10 },
+    { key: "2418057", name: "CONECTOR COMP. COBRE 1/0-2/0/ F8-2 AWG", category: "CONECTORES", min: 10 },
+    { key: "2418062", name: "CONECTOR COMP ALUM 6-2/4-2AWG", category: "CONECTORES", min: 10 },
+    { key: "2418067", name: "CONECTOR COMP ALUM 4/0/4/0AWG", category: "CONECTORES", min: 10 },
     { key: "2418068", name: "CONECTOR COMP ALUM 1/0/1/0AWG", category: "CONECTORES", min: 10 },
-    { key: "2418069", name: "CONECTOR COMP ALUM 336,4/ 2- 2/0AWG", category: "CONECTORES", min: 10 },
-    { key: "2418071", name: "CONECTOR COMP ALUM 336,4/ 336,4MCM", category: "CONECTORES", min: 10 },
-    { key: "2418072", name: "CONECTOR COMP ALUM 70,0-120,0/ 50- 95MM2", category: "CONECTORES", min: 10 },
-    { key: "2418075", name: "CONECTOR COMP ALUM 10,0- 25,0/ 50MM2", category: "CONECTORES", min: 10 },
-    { key: "2418076", name: "CONECTOR COMP ALUM 2/0-4/0/ 1,5- 10MM2", category: "CONECTORES", min: 10 },
-    { key: "2418077", name: "CONECTOR ESTRIBO COMP ALUM 4- 2/ 4-2AWG", category: "CONECTORES", min: 10 },
-    { key: "2418078", name: "CONECTOR ESTRIBO COMP ALUM 2/0/ 2/0AWG", category: "CONECTORES", min: 10 },
-    { key: "2418084", name: "CONECTOR COMP ALUM 35,0- 50,0/ 35- 50MM2", category: "CONECTORES", min: 10 },
+    { key: "2418069", name: "CONECTOR COMP ALUM 336,4/2-2/0AWG", category: "CONECTORES", min: 10 },
+    { key: "2418071", name: "CONECTOR COMP ALUM 336,4/336,4MCM", category: "CONECTORES", min: 10 },
+    { key: "2418072", name: "CONECTOR COMP ALUM 70,0-120,0/50-95MM2", category: "CONECTORES", min: 10 },
+    { key: "2418075", name: "CONECTOR COMP ALUM 10,0-25,0/50MM2", category: "CONECTORES", min: 10 },
+    { key: "2418076", name: "CONECTOR COMP ALUM 2/0-4/0/1,5-10MM2", category: "CONECTORES", min: 10 },
+    { key: "2418077", name: "CONECTOR ESTRIBO COMP ALUM 4-2/4-2AWG", category: "CONECTORES", min: 10 },
+    { key: "2418078", name: "CONECTOR ESTRIBO COMP ALUM 2/0/2/0AWG", category: "CONECTORES", min: 10 },
+    { key: "2418084", name: "CONECTOR COMP ALUM 35,0-50,0/35-50MM2", category: "CONECTORES", min: 10 },
     { key: "2418089", name: "TERMINAL COMP CU EST 2F 4AWG CAA-35MM", category: "CONECTORES", min: 10 },
     { key: "2418091", name: "TERMINAL COMP CU EST 2F 50 MM 2/0 AWG", category: "CONECTORES", min: 10 },
     { key: "2418094", name: "TERMINAL COMP CU EST 2F 185MM-336 MCM", category: "CONECTORES", min: 10 },
-    { key: "2420127", name: "BARRA TERMINAL   4/0 /4N", category: "CONECTORES", min: 10 },
-    { key: "2420373", name: "BARRA TERMINAL  336 /2N", category: "CONECTORES", min: 10 },
-    { key: "2420377", name: "BARRA TERMINAL   4/0 /2N", category: "CONECTORES", min: 10 },
-    { key: "2420421", name: "CONETOR TRM AL  TORQ 1F 95-240MM2", category: "CONECTORES", min: 10 },
-    { key: "2420424", name: "CONETOR TRM AL  TORQ 2F/NEMA 25-95MM2", category: "CONECTORES", min: 10 },
+    
+    // BARRAS TERMINAIS (5 itens)
+    { key: "2420127", name: "BARRA TERMINAL 4/0 /4N", category: "CONECTORES", min: 10 },
+    { key: "2420373", name: "BARRA TERMINAL 336 /2N", category: "CONECTORES", min: 10 },
+    { key: "2420377", name: "BARRA TERMINAL 4/0 /2N", category: "CONECTORES", min: 10 },
+    { key: "2420421", name: "CONETOR TRM AL TORQ 1F 95-240MM2", category: "CONECTORES", min: 10 },
+    { key: "2420424", name: "CONETOR TRM AL TORQ 2F/NEMA 25-95MM2", category: "CONECTORES", min: 10 },
+    
+    // TERMINAÇÕES E EMENDAS (7 itens)
     { key: "2441057", name: "TERMINAÇÃO 20KV 120-240MM2 E", category: "CONECTORES", min: 10 },
-    { key: "2443059", name: "EMENDA RETA 24KV  95-240 MM2 TORQ", category: "CONECTORES", min: 10 },
-    { key: "2448032", name: "PROTETOR TERMINAL RELIGADOR", category: "PROTETORES", min: 5 },
-    { key: "2448043", name: "PROTETOR TERMINAL ATE 36KV TRAF REG", category: "PROTETORES", min: 5 },
-    { key: "2449010", name: "TUBO TERMOCONTRATIL 140MM  15,0KV", category: "ISOLANTES", min: 10 },
-    { key: "2452000", name: "EMENDA PREF COND AL CAA 4  SWAN", category: "CONECTORES", min: 10 },
-    { key: "2452001", name: "EMENDA PREF COND AL CAA 1/0  RAVEN", category: "CONECTORES", min: 10 },
+    { key: "2443059", name: "EMENDA RETA 24KV 95-240 MM2 TORQ", category: "CONECTORES", min: 10 },
+    { key: "2448032", name: "PROTETOR TERMINAL RELIGADOR", category: "CONECTORES", min: 10 },
+    { key: "2448043", name: "PROTETOR TERMINAL ATE 36KV TRAF REG", category: "CONECTORES", min: 10 },
+    { key: "2449010", name: "TUBO TERMOCONTRATIL 140MM 15,0KV", category: "CONECTORES", min: 10 },
+    
+    // EMENDAS PREFORMADAS (8 itens)
+    { key: "2452000", name: "EMENDA PREF COND AL CAA 4 SWAN", category: "CONECTORES", min: 10 },
+    { key: "2452001", name: "EMENDA PREF COND AL CAA 1/0 RAVEN", category: "CONECTORES", min: 10 },
     { key: "2452002", name: "EMENDA PREFORMADA CONDUTORA 4/0 AWG", category: "CONECTORES", min: 10 },
-    { key: "2452022", name: "EMENDA PREF COND AL CA 4  ROSE", category: "CONECTORES", min: 10 },
+    { key: "2452022", name: "EMENDA PREF COND AL CA 4 ROSE", category: "CONECTORES", min: 10 },
     { key: "2453003", name: "EMENDA PREF COND COBRE 35 MM2", category: "CONECTORES", min: 10 },
     { key: "2454000", name: "EMENDA PREF TOTAL AL CAA 4 SWAN", category: "CONECTORES", min: 10 },
     { key: "2454001", name: "EMENDA PREF TOTAL AL CAA 1/0 RAVEN", category: "CONECTORES", min: 10 },
     { key: "2454002", name: "EMENDA PREFORMADA TOTAL 4/0 AWG", category: "CONECTORES", min: 10 },
-    { key: "2460000", name: "CONETOR ESTRB AL PROT 15KV  70,0MM2/35MM", category: "CONECTORES", min: 10 },
+    
+    // CONECTORES PROTEGIDOS (9 itens)
+    { key: "2460000", name: "CONETOR ESTRB AL PROT 15KV 70,0MM2/35MM", category: "CONECTORES", min: 10 },
     { key: "2460001", name: "CONETOR ESTRB AL PROT 15KV 185,0MM2/35MM", category: "CONECTORES", min: 10 },
-    { key: "2460002", name: "CONETOR ESTRB AL PROT 15KV  35,0MM2/35MM", category: "CONECTORES", min: 10 },
+    { key: "2460002", name: "CONETOR ESTRB AL PROT 15KV 35,0MM2/35MM", category: "CONECTORES", min: 10 },
     { key: "2461000", name: "CONETOR IMPACT AL PROT 15KV 185,0/185,0", category: "CONECTORES", min: 10 },
-    { key: "2461001", name: "CONETOR IMPACT AL PROT 15KV 185,0/ 35,0", category: "CONECTORES", min: 10 },
-    { key: "2461003", name: "CONETOR IMPACT AL PROT 15KV  70,0/ 70,0", category: "CONECTORES", min: 10 },
-    { key: "2461005", name: "CONETOR IMPACT AL PROT 15KV 185,0/ 70,0", category: "CONECTORES", min: 10 },
-    { key: "2461007", name: "CONETOR IMPACT AL PROT 15KV  70,0/ 35,0", category: "CONECTORES", min: 10 },
-    { key: "2461009", name: "CONETOR IMPACT AL PROT 15KV  35,0/ 35,0", category: "CONECTORES", min: 10 },
-    { key: "2660000", name: "FITA ISOLANTE -CLASSE A PT 1KV 19MM 10M", category: "ISOLANTES", min: 10 },
-    { key: "2660001", name: "FITA ISOLANTE -CLASSE A PT 750V 19MM 20M", category: "ISOLANTES", min: 10 },
-    { key: "2660002", name: "FITA ISOL PVC 19,0MM VERMELHA", category: "ISOLANTES", min: 10 },
-    { key: "2660003", name: "FITA ISOL PVC 19,0MM AZUL", category: "ISOLANTES", min: 10 },
-    { key: "2660005", name: "FITA ISOL PVC 19,0MM BRANCA", category: "ISOLANTES", min: 10 },
-    { key: "2660008", name: "FITA ISOL PVC 19,0MM MARROM", category: "ISOLANTES", min: 10 },
-    { key: "3211076", name: "ESTRUT METALICA BANCA RT UNIVERSAL", category: "ESTRUTURAS", min: 3 },
-    { key: "3300012", name: "POSTE CONCRETO DT  9/400 29F", category: "POSTES", min: 3 },
+    { key: "2461001", name: "CONETOR IMPACT AL PROT 15KV 185,0/35,0", category: "CONECTORES", min: 10 },
+    { key: "2461003", name: "CONETOR IMPACT AL PROT 15KV 70,0/70,0", category: "CONECTORES", min: 10 },
+    { key: "2461005", name: "CONETOR IMPACT AL PROT 15KV 185,0/70,0", category: "CONECTORES", min: 10 },
+    { key: "2461007", name: "CONETOR IMPACT AL PROT 15KV 70,0/35,0", category: "CONECTORES", min: 10 },
+    { key: "2461009", name: "CONETOR IMPACT AL PROT 15KV 35,0/35,0", category: "CONECTORES", min: 10 },
+    
+    // FITAS ISOLANTES (6 itens)
+    { key: "2660000", name: "FITA ISOLANTE -CLASSE A PT 1KV 19MM 10M", category: "MATERIAIS", min: 10 },
+    { key: "2660001", name: "FITA ISOLANTE -CLASSE A PT 750V 19MM 20M", category: "MATERIAIS", min: 10 },
+    { key: "2660002", name: "FITA ISOL PVC 19,0MM VERMELHA", category: "MATERIAIS", min: 10 },
+    { key: "2660003", name: "FITA ISOL PVC 19,0MM AZUL", category: "MATERIAIS", min: 10 },
+    { key: "2660005", name: "FITA ISOL PVC 19,0MM BRANCA", category: "MATERIAIS", min: 10 },
+    { key: "2660008", name: "FITA ISOL PVC 19,0MM MARROM", category: "MATERIAIS", min: 10 },
+    
+    // ESTRUTURAS (1 item)
+    { key: "3211076", name: "ESTRUT METALICA BANCA RT UNIVERSAL", category: "ESTRUTURAS", min: 5 },
+    
+    // POSTES (10 itens)
+    { key: "3300012", name: "POSTE CONCRETO DT 9/400 29F", category: "POSTES", min: 3 },
     { key: "3300016", name: "POSTE CONCRETO DT 11/600 44F", category: "POSTES", min: 3 },
     { key: "3300076", name: "POSTE CONCRETO DT 9/600 29F", category: "POSTES", min: 3 },
     { key: "3300082", name: "POSTE CONCRETO DT 12/600 44F", category: "POSTES", min: 3 },
@@ -640,14 +689,18 @@
     { key: "3302058", name: "POSTE CONCRETO CIRCULAR 12/1000", category: "POSTES", min: 3 },
     { key: "3302082", name: "POSTE CONCRETO CIRCULAR 11/1000", category: "POSTES", min: 3 },
     { key: "3302085", name: "POSTE CONCRETO CIRCULAR 12/1500", category: "POSTES", min: 3 },
-    { key: "3310009", name: "CRUZETA CONC T    2400MM  400DAN", category: "CRUZETAS", min: 5 },
-    { key: "3310013", name: "CRUZETA CONC  L 1700 MM 300DAN", category: "CRUZETAS", min: 5 },
-    { key: "3310021", name: "CRUZETA CONC  T 1900 MM 350DAN", category: "CRUZETAS", min: 5 },
-    { key: "3310028", name: "CRUZETA CONC RET  2100MM  400DAN", category: "CRUZETAS", min: 5 },
-    { key: "3310029", name: "CRUZETA CONC RET  2400MM  400DAN", category: "CRUZETAS", min: 5 },
-    { key: "3324021", name: "PLACA CONC ESTAI 400 F22", category: "ESTRUTURAS", min: 5 },
-    { key: "3340010", name: "CRUZETA FIBRA RETA 90X90 2,0M REFORCADA", category: "CRUZETAS", min: 5 },
-    { key: "3340011", name: "CRUZETA FIBRA RETA 90X90 2,4M REFORCADA", category: "CRUZETAS", min: 5 },
+    
+    // CRUZETAS (8 itens)
+    { key: "3310009", name: "CRUZETA CONC T 2400MM 400DAN", category: "CRUZETAS", min: 3 },
+    { key: "3310013", name: "CRUZETA CONC L 1700 MM 300DAN", category: "CRUZETAS", min: 3 },
+    { key: "3310021", name: "CRUZETA CONC T 1900 MM 350DAN", category: "CRUZETAS", min: 3 },
+    { key: "3310028", name: "CRUZETA CONC RET 2100MM 400DAN", category: "CRUZETAS", min: 3 },
+    { key: "3310029", name: "CRUZETA CONC RET 2400MM 400DAN", category: "CRUZETAS", min: 3 },
+    { key: "3324021", name: "PLACA CONC ESTAI 400 F22", category: "CRUZETAS", min: 3 },
+    { key: "3340010", name: "CRUZETA FIBRA RETA 90X90 2,0M REFORCADA", category: "CRUZETAS", min: 3 },
+    { key: "3340011", name: "CRUZETA FIBRA RETA 90X90 2,4M REFORCADA", category: "CRUZETAS", min: 3 },
+    
+    // POSTES DE FIBRA (9 itens)
     { key: "3341009", name: "POSTE FIBRA CIRC/QUAD 11/400", category: "POSTES", min: 3 },
     { key: "3341010", name: "POSTE FIBRA CIRC/QUAD 11/600", category: "POSTES", min: 3 },
     { key: "3341012", name: "POSTE FIBRA CIRC/QUAD 12/400", category: "POSTES", min: 3 },
@@ -657,187 +710,206 @@
     { key: "3341021", name: "POSTE FIBRA CIRC/QUAD 9/600", category: "POSTES", min: 3 },
     { key: "3341045", name: "POSTE CIRC MODULAR PRFV 11000MM 600DAN", category: "POSTES", min: 3 },
     { key: "3341051", name: "POSTE CIRC MODULAR PRFV 9000MM 400DAN", category: "POSTES", min: 3 },
-    { key: "3410030", name: "MAO FRANCESA PERFIL ACO 48X 5,0X 1971MM", category: "FERRAGENS", min: 10 },
-    { key: "3410080", name: "MAO FRANCESA PLANA ACO  710MM", category: "FERRAGENS", min: 10 },
-    { key: "3410134", name: "MAO FRANCESA NORMAL ACO 32X 6,0X 726MM", category: "FERRAGENS", min: 10 },
-    { key: "3410135", name: "MAO FRANCESA NORMAL ACO 32X 6,0X 619MM", category: "FERRAGENS", min: 10 },
-    { key: "3410140", name: "MAO FRANCESA PERFIL ACO 38X 5,0X 993MM", category: "FERRAGENS", min: 10 },
-    { key: "3411058", name: "PERFIL U  41X101X4000 MM", category: "PERFIS", min: 5 },
-    { key: "3411059", name: "PERFIL U  66X203X4000 MM", category: "PERFIS", min: 5 },
-    { key: "3411062", name: "PERFIL U  51X152X 600 MM", category: "PERFIS", min: 5 },
-    { key: "3411065", name: "PERFIL U  51X152X1100 MM", category: "PERFIS", min: 5 },
-    { key: "3411092", name: "PERFIL U 50X152X1200MM W17-810", category: "PERFIS", min: 5 },
-    { key: "3411094", name: "CANTONEIRA 76X76X700MM W17-811", category: "PERFIS", min: 5 },
-    { key: "3411095", name: "CANTONEIRA127X127X600MM W17-812", category: "PERFIS", min: 5 },
-    { key: "3411097", name: "CANTONEIRA 127X127X1200MM W17-838", category: "PERFIS", min: 5 },
-    { key: "3411345", name: "CHAPA    6X  70X  50MM W17- 20", category: "CHAPAS", min: 5 },
-    { key: "3411778", name: "PERFIL U ACO GALV 76 X 38 X 6,5 X 900MM", category: "PERFIS", min: 5 },
-    { key: "3412000", name: "BRACO REDE PROT ANTIBAL 305MM", category: "BRACOS", min: 10 },
-    { key: "3412015", name: "ESTRIBO BRACO L", category: "BRACOS", min: 10 },
-    { key: "3412020", name: "BRACO REDE PROT TIPO C 580X440X365X 76MM", category: "BRACOS", min: 10 },
-    { key: "3412021", name: "BRACO REDE PROT TIPO C 640X495X470X 76MM", category: "BRACOS", min: 10 },
-    { key: "3412022", name: "BRACO REDE PROT ANTIBAL 565MM", category: "BRACOS", min: 10 },
-    { key: "3412023", name: "BRACO REDE PROT TIPO L 600MM", category: "BRACOS", min: 10 },
-    { key: "3412025", name: "SUPORTE REDE PROT TIPO Z 85X113X85MM", category: "SUPORTES", min: 10 },
-    { key: "3412027", name: "ANEL AMARRACAO ELASTOMERICO 15 KV", category: "ACESSORIOS", min: 10 },
-    { key: "3412030", name: "BRACO REDE PROT TIPO L 354MM", category: "BRACOS", min: 10 },
-    { key: "3413015", name: "BANDEJA CABO 500MM", category: "BANDEJAS", min: 5 },
-    { key: "3414345", name: "CANTONEIRA  65X 65X 900MM", category: "PERFIS", min: 5 },
-    { key: "3414474", name: "CANTONEIRA  76X 76X 650MM", category: "PERFIS", min: 5 },
-    { key: "3416045", name: "CINTA POSTE CIRC ACO CARB  140,0MM", category: "CINTAS", min: 10 },
-    { key: "3416055", name: "CINTA POSTE CIRC ACO CARB  160,0MM", category: "CINTAS", min: 10 },
-    { key: "3416065", name: "CINTA POSTE CIRC ACO CARB  180,0MM", category: "CINTAS", min: 10 },
-    { key: "3416075", name: "CINTA POSTE CIRC ACO CARB  200,0MM.", category: "CINTAS", min: 10 },
-    { key: "3416080", name: "CINTA POSTE CIRC ACO CARB  220,0MM", category: "CINTAS", min: 10 },
-    { key: "3416090", name: "CINTA POSTE CIRC ACO CARB       240,0MM.", category: "CINTAS", min: 10 },
-    { key: "3416100", name: "CINTA CIRCULAR ACO 260MM", category: "CINTAS", min: 10 },
-    { key: "3416105", name: "CINTA POSTE CIRC ACO CARB   280,0MM", category: "CINTAS", min: 10 },
-    { key: "3416115", name: "CINTA POSTE CIRC ACO CARB  300,0MM.", category: "CINTAS", min: 10 },
-    { key: "3416120", name: "CINTA POSTE CIRC ACO CARB  320,0MM", category: "CINTAS", min: 10 },
-    { key: "3416125", name: "CINTA POSTE CIRC ACO CARB  340,0MM", category: "CINTAS", min: 10 },
-    { key: "3416130", name: "CINTA POSTE CIRC ACO CARB   360,0MM", category: "CINTAS", min: 10 },
-    { key: "3416175", name: "CINTA POSTE CIRC ACO CARB  380,0MM", category: "CINTAS", min: 10 },
-    { key: "3416180", name: "CINTA POSTE CIRC ACO CARB  400,0MM", category: "CINTAS", min: 10 },
-    { key: "3417025", name: "ARMACAO SECUN ACO CARB 1 ESTR.150X 110MM", category: "ARMACOES", min: 5 },
-    { key: "3417035", name: "ARMACAO SECUN ACO CARB 2 ESTR 350X 310MM", category: "ARMACOES", min: 5 },
-    { key: "3419011", name: "SUPORTE INSTALACAO CHAVE FACA/OLEO", category: "SUPORTES", min: 5 },
-    { key: "3419014", name: "SUPORTE INSTALACAO EQUIPAMENTO.", category: "SUPORTES", min: 5 },
-    { key: "3419030", name: "SELA CRUZETA 110X116MM", category: "SELAS", min: 10 },
-    { key: "3419033", name: "SUPORTE CHAVE TRANSFERENCIA 36,2KV", category: "SUPORTES", min: 5 },
-    { key: "3419035", name: "SUPORTE CHAVE TRANSFERENCIA 15,0KV", category: "SUPORTES", min: 5 },
-    { key: "3419036", name: "SELA CRUZETA 110X116MM AL", category: "SELAS", min: 10 },
-    { key: "3419042", name: "SELA ESP CRUZETA 110X302MM", category: "SELAS", min: 10 },
-    { key: "3419072", name: "SUPORTE L CHAVE FUS PARA-RAIO PAD NEMA", category: "SUPORTES", min: 5 },
-    { key: "3419083", name: "SUPORTE ISOLADOR PILAR", category: "SUPORTES", min: 5 },
-    { key: "3419162", name: "SUPORTE RETANG TRAFO 185X 95MM", category: "SUPORTES", min: 5 },
-    { key: "3419168", name: "SUPORTE RETANG TRAFO 195X100MM", category: "SUPORTES", min: 5 },
-    { key: "3419180", name: "SUPORTE T 540MM MRT PARA-RAIOS", category: "SUPORTES", min: 5 },
-    { key: "3419186", name: "SUPORTE TRAFO POSTE CIRC 210MM", category: "SUPORTES", min: 5 },
-    { key: "3419192", name: "SUPORTE TRAFO POSTE CIRC 230MM", category: "SUPORTES", min: 5 },
-    { key: "3419218", name: "SUPORTE INCL SECCIONADOR FACA", category: "SUPORTES", min: 5 },
-    { key: "3419227", name: "SUPORTE AFASTADOR HORIZ ACO RC 2500MM", category: "SUPORTES", min: 5 },
-    { key: "3419228", name: "SUPORTE AFASTADOR HORIZ ACO RC 1250MM", category: "SUPORTES", min: 5 },
-    { key: "3419229", name: "SUPORTE AFASTADOR HORIZ ACO RC 1650MM", category: "SUPORTES", min: 5 },
-    { key: "3419255", name: "SUPORTE REDE PROT HORIZ 675X300X60MM", category: "SUPORTES", min: 5 },
-    { key: "3419256", name: "SUPORTE REDE PROT HORIZ 875X400X60MM", category: "SUPORTES", min: 5 },
-    { key: "3419265", name: "SUPORTE ESCADA SAE1010/1020 GALV", category: "SUPORTES", min: 5 },
-    { key: "3419273", name: "SUPORTE CAIXA DE JUNCAO", category: "SUPORTES", min: 5 },
-    { key: "3419283", name: "SUPORTE  P/EQUIP CHAVE BY-PASS 632X6,3MM", category: "SUPORTES", min: 5 },
-    { key: "3419284", name: "SUPORTE P/EQUIP CHAVE BY-PASS 680X63,5MM", category: "SUPORTES", min: 5 },
-    { key: "3420010", name: "MANILHA ACO 12000 DAN", category: "MANILHAS", min: 10 },
-    { key: "3420090", name: "MANILHA SAPATILHA ACO  5000DAN", category: "MANILHAS", min: 10 },
-    { key: "3420110", name: "MANILHA  90 GRAUS 12000DAN", category: "MANILHAS", min: 10 },
-    { key: "3421010", name: "SAPATILHA CABO 9,5MM", category: "SAPATILHAS", min: 10 },
-    { key: "3423030", name: "GANCHO SUSP OLHAL   5000DAN", category: "GANCHOS", min: 10 },
-    { key: "3425030", name: "AFASTADOR ARMACAO SECUNDARIA  250X300MM", category: "AFASTADORES", min: 10 },
-    { key: "3425040", name: "AFASTADOR ARMACAO SECUNDARIA  500X300MM", category: "AFASTADORES", min: 10 },
-    { key: "3426030", name: "ESPAC RD PROT 35kV AUT-TRA POL 35-240MM2", category: "ESPACADORES", min: 10 },
-    { key: "3426163", name: "ESPAC RD PROT 15kV AUT-TRA POL 35-240MM2", category: "ESPACADORES", min: 10 },
-    { key: "3428085", name: "PINO ISOL ACO 16,0MM 154X  38X 192MM", category: "PINOS", min: 10 },
-    { key: "3428086", name: "PINO ISOL ACO 16,0MM 168,5X 28,5X 140MM", category: "PINOS", min: 10 },
-    { key: "3428220", name: "PINO ISOLADOR RETO NORMAL ACO 15,0KV.", category: "PINOS", min: 10 },
-    { key: "3428250", name: "PINO ISOLADOR RETO NORMAL ACO 36,2KV", category: "PINOS", min: 10 },
-    { key: "3428265", name: "PINO ISOLADOR TOPO ACO 15,0KV", category: "PINOS", min: 10 },
-    { key: "3428280", name: "PINO ISOLADOR TOPO ACO 36,2KV", category: "PINOS", min: 10 },
-    { key: "3428343", name: "PINO ISOL ACO 18,0MM 200X  40X 240MM", category: "PINOS", min: 10 },
-    { key: "3430005", name: "ALCA PREF SERV AS COBRE 25 MM2 NI", category: "ALCAS", min: 10 },
-    { key: "3430006", name: "ALCA PREF SERV AS COBRE 35 MM2 NI", category: "ALCAS", min: 10 },
-    { key: "3430120", name: "ALCA PREF DIST ALUM 4AWG 430MM", category: "ALCAS", min: 10 },
-    { key: "3430140", name: "ALCA PREF DIST CA/CAA 1/0 AWG", category: "ALCAS", min: 10 },
-    { key: "3430150", name: "ALCA PREF DIST ALUM 4/0AWG 864MM", category: "ALCAS", min: 10 },
-    { key: "3430170", name: "ALCA PREF DIST CAA 336,4 MCM", category: "ALCAS", min: 10 },
-    { key: "3430180", name: "ALCA PREF DIST ALUM 2/0AWG 711MM", category: "ALCAS", min: 10 },
-    { key: "3430190", name: "ALCA PREF DIST  25,00MM2  483MM", category: "ALCAS", min: 10 },
-    { key: "3430200", name: "ALCA PREF DIST COBRE 35 MM2", category: "ALCAS", min: 10 },
-    { key: "3430210", name: "ALCA PREF DIST  70,00MM2   724M", category: "ALCAS", min: 10 },
-    { key: "3430220", name: "ALCA PREF DIST COBRE 120 MM2", category: "ALCAS", min: 10 },
-    { key: "3430350", name: "ALCA PREFORMADA ESTAI 7,90 MM EAR", category: "ALCAS", min: 10 },
-    { key: "3430360", name: "ALCA PREFORMADA ESTAI 9,50 MM EAR", category: "ALCAS", min: 10 },
-    { key: "3430370", name: "ALCA PREFORMADA ESTAI 6,40 MM MR", category: "ALCAS", min: 10 },
-    { key: "3430380", name: "ALCA PREFORMADA ESTAI 9,50 MM MR", category: "ALCAS", min: 10 },
-    { key: "3430520", name: "ALCA PREF SERV AS AL 35 MM2 NI", category: "ALCAS", min: 10 },
-    { key: "3430530", name: "ALCA PREF SERV CONC COBRE 1X6+1X6 MM2", category: "ALCAS", min: 10 },
-    { key: "3430535", name: "ALCA PREF SERV CONC COBRE 1X10+1X10 MM2", category: "ALCAS", min: 10 },
-    { key: "3430538", name: "ALCA PREF DIST GALV  70,00MM2 1000MM", category: "ALCAS", min: 10 },
-    { key: "3430539", name: "ALCA PREF DIST GALV 185,00MM2 1300MM", category: "ALCAS", min: 10 },
-    { key: "3430543", name: "ALCA PREF SERV AS COBRE 16 MM2 NI", category: "ALCAS", min: 10 },
-    { key: "3430545", name: "ALCA PREF DIST GALV  50,00MM2 N. ISOL.", category: "ALCAS", min: 10 },
-    { key: "3430546", name: "ALCA PREF RAM LIG 35MM N. ISOL", category: "ALCAS", min: 10 },
-    { key: "3430547", name: "ALCA PREF RAM LIG ACO  25MM N ISOL..", category: "ALCAS", min: 10 },
-    { key: "3430548", name: "ALCA PREF RAM LIG 10/16MM N. ISOL", category: "ALCAS", min: 10 },
-    { key: "3430549", name: "AlCA PREF DIST GALV  70,00MM2 N. ISOL.", category: "ALCAS", min: 10 },
-    { key: "3430550", name: "ALCA PREF DIST GALV  35,00MM2.", category: "ALCAS", min: 10 },
-    { key: "3430551", name: "ALCA PREF DIST GALV.  70,00MM2  750MM", category: "ALCAS", min: 10 },
-    { key: "3430553", name: "ALCA PREF DIST GALV 185,00MM2 1000MM", category: "ALCAS", min: 10 },
-    { key: "3431560", name: "LACO PREF ROLD 50 MM2 AS NI CAL", category: "LACOS", min: 10 },
-    { key: "3431590", name: "LACO PREF ROLD 70 MM2 AS NI CAL", category: "LACOS", min: 10 },
-    { key: "3431611", name: "LACO PREF. ROLD 25 MM2 AS NI CA", category: "LACOS", min: 10 },
-    { key: "3431720", name: "LACO PREF TOPO 70 MM2 PROTEGIDO", category: "LACOS", min: 10 },
-    { key: "3431721", name: "LACO PREF TOPO 35 MM2 PROTEGIDO", category: "LACOS", min: 10 },
-    { key: "3431760", name: "LACO PREF ROLD 35 MM2 AS NI CAL", category: "LACOS", min: 10 },
-    { key: "3432010", name: "SECCIONADOR PREF 3,30- 4,10MM 650MM", category: "SECCIONADORES", min: 5 },
-    { key: "3433010", name: "CONECTOR L PREF CERCA 3,26 - 4,11 MM", category: "CONECTORES", min: 10 },
-    { key: "3435010", name: "HASTE ACO CARB 16X 2400MM 5000DAN", category: "HASTES", min: 10 },
-    { key: "3435030", name: "HASTE ANCORA 20X2400MM 8000DAN", category: "HASTES", min: 10 },
-    { key: "3436010", name: "CHAPA ESTAI  76MM", category: "CHAPAS", min: 5 },
-    { key: "3454001", name: "ARRUELA PRESILHA ATERRAMENTO FURO 18MM", category: "ARRUELAS", min: 20 },
-    { key: "3458030", name: "TAMPAO CIRCULAR FERRO  806 MM", category: "TAMPÕES", min: 5 },
-    { key: "3460025", name: "ELETRODUTO AÇO DIÂM 100MM 03M", category: "ELETRODUTOS", min: 5 },
-    { key: "3461100", name: "ELETRODUTO PVC ROSQ     1/2\"", category: "ELETRODUTOS", min: 10 },
-    { key: "3464120", name: "BUCHA ELETRODUTO AL  4\"", category: "BUCHAS", min: 10 },
-    { key: "3464370", name: "CURVA ELETRODUTO ACO  90    ROSQ  4\"", category: "CURVAS", min: 5 },
-    { key: "3464535", name: "LUVA ELET     MET     100", category: "LUVAS", min: 10 },
-    { key: "3465235", name: "CURVA ELETRODUTO PVC  90 RL ROSQ    3/4\"", category: "CURVAS", min: 5 },
-    { key: "3470008", name: "HASTE ATERRAM CIRC      13,0X 2400,0MM", category: "HASTES", min: 10 },
-    { key: "3470080", name: "HASTE TERRA COBRE 19X3048MM", category: "HASTES", min: 10 },
-    { key: "3480270", name: "PARAFUSO ABAU SAE1010    M16X    45MM", category: "PARAFUSOS", min: 20 },
-    { key: "3480275", name: "PARAFUSO ABAU ACO CARB    M16X    70MM", category: "PARAFUSOS", min: 20 },
-    { key: "3480280", name: "PARAFUSO ABAU SAE1010    M16X   150MM", category: "PARAFUSOS", min: 20 },
-    { key: "3480285", name: "PARAFUSO CAB QUAD ACO  12X125", category: "PARAFUSOS", min: 20 },
-    { key: "3480300", name: "PARAFUSO QUAD. SAE1010/20   M16X 150,0MM", category: "PARAFUSOS", min: 20 },
-    { key: "3480305", name: "PARAFUSO CAB QUAD ACO  16X 200", category: "PARAFUSOS", min: 20 },
-    { key: "3480310", name: "PARAFUSO CAB QUAD ACO  16X 250", category: "PARAFUSOS", min: 20 },
-    { key: "3480315", name: "PARAFUSO CAB QUAD ACO  16X 300", category: "PARAFUSOS", min: 20 },
-    { key: "3480320", name: "PARAFUSO CAB QUAD ACO  16X 350", category: "PARAFUSOS", min: 20 },
-    { key: "3480325", name: "PARAFUSO CAB QUAD ACO  16X 400", category: "PARAFUSOS", min: 20 },
-    { key: "3480330", name: "PARAFUSO CAB QUAD ACO  16X 450", category: "PARAFUSOS", min: 20 },
-    { key: "3480335", name: "PARAFUSO CAB QUAD ACO  16X 500", category: "PARAFUSOS", min: 20 },
-    { key: "3480340", name: "PARAFUSO CAB QUAD ACO  16X 550", category: "PARAFUSOS", min: 20 },
-    { key: "3480355", name: "PARAFUSO CAB QUAD ACO  20X 450", category: "PARAFUSOS", min: 20 },
-    { key: "3480405", name: "PARAFUSO QUAD SAE1010/20    M16X  50,0MM", category: "PARAFUSOS", min: 20 },
-    { key: "3480410", name: "PARAFUSO QUAD SAE1010/20    M16X 125,0MM", category: "PARAFUSOS", min: 20 },
-    { key: "3480480", name: "PARAFUSO CAB QUAD ACO  12X 250", category: "PARAFUSOS", min: 20 },
-    { key: "3480490", name: "PARAFUSO CAB QUAD ACO  16X 700", category: "PARAFUSOS", min: 20 },
-    { key: "3480520", name: "PARAFUSO CAB SEXT ACO  10X  25", category: "PARAFUSOS", min: 20 },
-    { key: "3480565", name: "PARAFUSO DUPLO    ACO  16X 400", category: "PARAFUSOS", min: 20 },
-    { key: "3480645", name: "PARAFUSO CAB SEXT   1/2\" X 40,0MM", category: "PARAFUSOS", min: 20 },
-    { key: "3480922", name: "PARAFUSO CAB QUAD. ACO  16X 100", category: "PARAFUSOS", min: 20 },
-    { key: "3481014", name: "PARAFUSO CAB SEXT INOX 12X  30", category: "PARAFUSOS", min: 20 },
-    { key: "3481027", name: "PARAFUSO CAB SEXT BR   12X  50,0MM", category: "PARAFUSOS", min: 20 },
-    { key: "3481046", name: "PARAFUSO CAB SEX T INOX/DURIUM 12X 50MM", category: "PARAFUSOS", min: 20 },
-    { key: "3484058", name: "PARAFUSO OLHAL ACO  16X 250", category: "PARAFUSOS", min: 20 },
-    { key: "3485003", name: "PARAFUSO SEGURANCA LOBULAR M6X35MM", category: "PARAFUSOS", min: 20 },
-    { key: "3485166", name: "PARAFUSO PRISIONEIRO ACO   85MM", category: "PARAFUSOS", min: 20 },
-    { key: "3485180", name: "PARAFUSO SEGURANCA CABECA ESP M6X16MM", category: "PARAFUSOS", min: 20 },
-    { key: "3486040", name: "OLHAL P/PARAF FOFO M16-5/8\" 5000DAN", category: "OLHAIS", min: 10 },
-    { key: "3488003", name: "PARAFUSO AUTO-ATAR PANELA 4,8X32,0MM FN", category: "PARAFUSOS", min: 20 },
-    { key: "3490080", name: "PORCA QUAD SAE1020 MG     M16", category: "PORCAS", min: 20 },
-    { key: "3493105", name: "ARRUELA PRES ACO CARB GF M16", category: "ARRUELAS", min: 20 },
-    { key: "3493115", name: "ARRUELA PRES ACO  PARAF 20,0MM", category: "ARRUELAS", min: 20 },
-    { key: "3493215", name: "ARRUELA QUAD AL      40 F14,00", category: "ARRUELAS", min: 20 },
-    { key: "3493235", name: "ARRUELA QUAD ACO 32 F12,00", category: "ARRUELAS", min: 20 },
-    { key: "3493265", name: "ARRUELA QUAD ACO 100 F18,00", category: "ARRUELAS", min: 20 },
-    { key: "3493285", name: "ARRUELA QUAD ACO 100 F22,00", category: "ARRUELAS", min: 20 },
-    { key: "3493315", name: "ARRUELA LIS QUAD SAE1020 M18", category: "ARRUELAS", min: 20 },
-    { key: "3493325", name: "ARRUELA QUAD ACO  38 F14,00", category: "ARRUELAS", min: 20 },
-    { key: "3504015", name: "BUCHA PLAST  5MM C/PARAFUSO", category: "BUCHAS", min: 20 },
-    { key: "3521319", name: "BRACADEIRA FIXACAO CABO 20,0-32,0MM", category: "BRACADEIRAS", min: 20 },
-    { key: "4401035", name: "CORDOALHA ACO ZINCADO EAR 7,9 MM", category: "CORDOALHAS", min: 10 },
-    { key: "4404025", name: "ARAME ACO ZINCADO 8 BWG", category: "ARAMES", min: 10 },
-    { key: "4404026", name: "ARAME LISO ACO CARB GALV    2,10MM", category: "ARAMES", min: 10 },
-    { key: "5040005", name: "GRAMPO ACO FITA 3/4\"", category: "GRAMPOS", min: 20 },
-    { key: "5040025", name: "FITA ACO INOXIDAVEL 0,50X19,00MM", category: "FITAS", min: 10 },
-    { key: "7511022", name: "PLACA INDICATIVA LOCALIZACAO EQUIP AL", category: "PLACAS", min: 5 },
+    
+    // FERRAGENS (150+ itens)
+    { key: "3410030", name: "MAO FRANCESA PERFIL ACO 48X5,0X1971MM", category: "FERRAGENS", min: 10 },
+    { key: "3410080", name: "MAO FRANCESA PLANA ACO 710MM", category: "FERRAGENS", min: 10 },
+    { key: "3410134", name: "MAO FRANCESA NORMAL ACO 32X6,0X726MM", category: "FERRAGENS", min: 10 },
+    { key: "3410135", name: "MAO FRANCESA NORMAL ACO 32X6,0X619MM", category: "FERRAGENS", min: 10 },
+    { key: "3410140", name: "MAO FRANCESA PERFIL ACO 38X5,0X993MM", category: "FERRAGENS", min: 10 },
+    { key: "3411058", name: "PERFIL U 41X101X4000 MM", category: "FERRAGENS", min: 10 },
+    { key: "3411059", name: "PERFIL U 66X203X4000 MM", category: "FERRAGENS", min: 10 },
+    { key: "3411062", name: "PERFIL U 51X152X600 MM", category: "FERRAGENS", min: 10 },
+    { key: "3411065", name: "PERFIL U 51X152X1100 MM", category: "FERRAGENS", min: 10 },
+    { key: "3411092", name: "PERFIL U 50X152X1200MM W17-810", category: "FERRAGENS", min: 10 },
+    { key: "3411094", name: "CANTONEIRA 76X76X700MM W17-811", category: "FERRAGENS", min: 10 },
+    { key: "3411095", name: "CANTONEIRA127X127X600MM W17-812", category: "FERRAGENS", min: 10 },
+    { key: "3411097", name: "CANTONEIRA 127X127X1200MM W17-838", category: "FERRAGENS", min: 10 },
+    { key: "3411345", name: "CHAPA 6X70X50MM W17-20", category: "FERRAGENS", min: 10 },
+    { key: "3411778", name: "PERFIL U ACO GALV 76 X 38 X 6,5 X 900MM", category: "FERRAGENS", min: 10 },
+    { key: "3412000", name: "BRACO REDE PROT ANTIBAL 305MM", category: "FERRAGENS", min: 10 },
+    { key: "3412015", name: "ESTRIBO BRACO L", category: "FERRAGENS", min: 10 },
+    { key: "3412020", name: "BRACO REDE PROT TIPO C 580X440X365X76MM", category: "FERRAGENS", min: 10 },
+    { key: "3412021", name: "BRACO REDE PROT TIPO C 640X495X470X76MM", category: "FERRAGENS", min: 10 },
+    { key: "3412022", name: "BRACO REDE PROT ANTIBAL 565MM", category: "FERRAGENS", min: 10 },
+    { key: "3412023", name: "BRACO REDE PROT TIPO L 600MM", category: "FERRAGENS", min: 10 },
+    { key: "3412025", name: "SUPORTE REDE PROT TIPO Z 85X113X85MM", category: "FERRAGENS", min: 10 },
+    { key: "3412027", name: "ANEL AMARRACAO ELASTOMERICO 15 KV", category: "FERRAGENS", min: 10 },
+    { key: "3412030", name: "BRACO REDE PROT TIPO L 354MM", category: "FERRAGENS", min: 10 },
+    { key: "3413015", name: "BANDEJA CABO 500MM", category: "FERRAGENS", min: 10 },
+    { key: "3414345", name: "CANTONEIRA 65X65X900MM", category: "FERRAGENS", min: 10 },
+    { key: "3414474", name: "CANTONEIRA 76X76X650MM", category: "FERRAGENS", min: 10 },
+    { key: "3416045", name: "CINTA POSTE CIRC ACO CARB 140,0MM", category: "FERRAGENS", min: 10 },
+    { key: "3416055", name: "CINTA POSTE CIRC ACO CARB 160,0MM", category: "FERRAGENS", min: 10 },
+    { key: "3416065", name: "CINTA POSTE CIRC ACO CARB 180,0MM", category: "FERRAGENS", min: 10 },
+    { key: "3416075", name: "CINTA POSTE CIRC ACO CARB 200,0MM.", category: "FERRAGENS", min: 10 },
+    { key: "3416080", name: "CINTA POSTE CIRC ACO CARB 220,0MM", category: "FERRAGENS", min: 10 },
+    { key: "3416090", name: "CINTA POSTE CIRC ACO CARB 240,0MM.", category: "FERRAGENS", min: 10 },
+    { key: "3416100", name: "CINTA CIRCULAR ACO 260MM", category: "FERRAGENS", min: 10 },
+    { key: "3416105", name: "CINTA POSTE CIRC ACO CARB 280,0MM", category: "FERRAGENS", min: 10 },
+    { key: "3416115", name: "CINTA POSTE CIRC ACO CARB 300,0MM.", category: "FERRAGENS", min: 10 },
+    { key: "3416120", name: "CINTA POSTE CIRC ACO CARB 320,0MM", category: "FERRAGENS", min: 10 },
+    { key: "3416125", name: "CINTA POSTE CIRC ACO CARB 340,0MM", category: "FERRAGENS", min: 10 },
+    { key: "3416130", name: "CINTA POSTE CIRC ACO CARB 360,0MM", category: "FERRAGENS", min: 10 },
+    { key: "3416175", name: "CINTA POSTE CIRC ACO CARB 380,0MM", category: "FERRAGENS", min: 10 },
+    { key: "3416180", name: "CINTA POSTE CIRC ACO CARB 400,0MM", category: "FERRAGENS", min: 10 },
+    { key: "3417025", name: "ARMACAO SECUN ACO CARB 1 ESTR.150X110MM", category: "FERRAGENS", min: 10 },
+    { key: "3417035", name: "ARMACAO SECUN ACO CARB 2 ESTR 350X310MM", category: "FERRAGENS", min: 10 },
+    { key: "3419011", name: "SUPORTE INSTALACAO CHAVE FACA/OLEO", category: "FERRAGENS", min: 10 },
+    { key: "3419014", name: "SUPORTE INSTALACAO EQUIPAMENTO.", category: "FERRAGENS", min: 10 },
+    { key: "3419030", name: "SELA CRUZETA 110X116MM", category: "FERRAGENS", min: 10 },
+    { key: "3419033", name: "SUPORTE CHAVE TRANSFERENCIA 36,2KV", category: "FERRAGENS", min: 10 },
+    { key: "3419035", name: "SUPORTE CHAVE TRANSFERENCIA 15,0KV", category: "FERRAGENS", min: 10 },
+    { key: "3419036", name: "SELA CRUZETA 110X116MM AL", category: "FERRAGENS", min: 10 },
+    { key: "3419042", name: "SELA ESP CRUZETA 110X302MM", category: "FERRAGENS", min: 10 },
+    { key: "3419072", name: "SUPORTE L CHAVE FUS PARA-RAIO PAD NEMA", category: "FERRAGENS", min: 10 },
+    { key: "3419083", name: "SUPORTE ISOLADOR PILAR", category: "FERRAGENS", min: 10 },
+    { key: "3419162", name: "SUPORTE RETANG TRAFO 185X95MM", category: "FERRAGENS", min: 10 },
+    { key: "3419168", name: "SUPORTE RETANG TRAFO 195X100MM", category: "FERRAGENS", min: 10 },
+    { key: "3419180", name: "SUPORTE T 540MM MRT PARA-RAIOS", category: "FERRAGENS", min: 10 },
+    { key: "3419186", name: "SUPORTE TRAFO POSTE CIRC 210MM", category: "FERRAGENS", min: 10 },
+    { key: "3419192", name: "SUPORTE TRAFO POSTE CIRC 230MM", category: "FERRAGENS", min: 10 },
+    { key: "3419218", name: "SUPORTE INCL SECCIONADOR FACA", category: "FERRAGENS", min: 10 },
+    { key: "3419227", name: "SUPORTE AFASTADOR HORIZ ACO RC 2500MM", category: "FERRAGENS", min: 10 },
+    { key: "3419228", name: "SUPORTE AFASTADOR HORIZ ACO RC 1250MM", category: "FERRAGENS", min: 10 },
+    { key: "3419229", name: "SUPORTE AFASTADOR HORIZ ACO RC 1650MM", category: "FERRAGENS", min: 10 },
+    { key: "3419255", name: "SUPORTE REDE PROT HORIZ 675X300X60MM", category: "FERRAGENS", min: 10 },
+    { key: "3419256", name: "SUPORTE REDE PROT HORIZ 875X400X60MM", category: "FERRAGENS", min: 10 },
+    { key: "3419265", name: "SUPORTE ESCADA SAE1010/1020 GALV", category: "FERRAGENS", min: 10 },
+    { key: "3419273", name: "SUPORTE CAIXA DE JUNCAO", category: "FERRAGENS", min: 10 },
+    { key: "3419283", name: "SUPORTE P/EQUIP CHAVE BY-PASS 632X6,3MM", category: "FERRAGENS", min: 10 },
+    { key: "3419284", name: "SUPORTE P/EQUIP CHAVE BY-PASS 680X63,5MM", category: "FERRAGENS", min: 10 },
+    { key: "3420010", name: "MANILHA ACO 12000 DAN", category: "FERRAGENS", min: 10 },
+    { key: "3420090", name: "MANILHA SAPATILHA ACO 5000DAN", category: "FERRAGENS", min: 10 },
+    { key: "3420110", name: "MANILHA 90 GRAUS 12000DAN", category: "FERRAGENS", min: 10 },
+    { key: "3421010", name: "SAPATILHA CABO 9,5MM", category: "FERRAGENS", min: 10 },
+    { key: "3423030", name: "GANCHO SUSP OLHAL 5000DAN", category: "FERRAGENS", min: 10 },
+    { key: "3425030", name: "AFASTADOR ARMACAO SECUNDARIA 250X300MM", category: "FERRAGENS", min: 10 },
+    { key: "3425040", name: "AFASTADOR ARMACAO SECUNDARIA 500X300MM", category: "FERRAGENS", min: 10 },
+    { key: "3426030", name: "ESPAC RD PROT 35kV AUT-TRA POL 35-240MM2", category: "FERRAGENS", min: 10 },
+    { key: "3426163", name: "ESPAC RD PROT 15kV AUT-TRA POL 35-240MM2", category: "FERRAGENS", min: 10 },
+    { key: "3428085", name: "PINO ISOL ACO 16,0MM 154X38X192MM", category: "FERRAGENS", min: 10 },
+    { key: "3428086", name: "PINO ISOL ACO 16,0MM 168,5X28,5X140MM", category: "FERRAGENS", min: 10 },
+    { key: "3428220", name: "PINO ISOLADOR RETO NORMAL ACO 15,0KV.", category: "FERRAGENS", min: 10 },
+    { key: "3428250", name: "PINO ISOLADOR RETO NORMAL ACO 36,2KV", category: "FERRAGENS", min: 10 },
+    { key: "3428265", name: "PINO ISOLADOR TOPO ACO 15,0KV", category: "FERRAGENS", min: 10 },
+    { key: "3428280", name: "PINO ISOLADOR TOPO ACO 36,2KV", category: "FERRAGENS", min: 10 },
+    { key: "3428343", name: "PINO ISOL ACO 18,0MM 200X40X240MM", category: "FERRAGENS", min: 10 },
+    { key: "3430005", name: "ALCA PREF SERV AS COBRE 25 MM2 NI", category: "FERRAGENS", min: 10 },
+    { key: "3430006", name: "ALCA PREF SERV AS COBRE 35 MM2 NI", category: "FERRAGENS", min: 10 },
+    { key: "3430120", name: "ALCA PREF DIST ALUM 4AWG 430MM", category: "FERRAGENS", min: 10 },
+    { key: "3430140", name: "ALCA PREF DIST CA/CAA 1/0 AWG", category: "FERRAGENS", min: 10 },
+    { key: "3430150", name: "ALCA PREF DIST ALUM 4/0AWG 864MM", category: "FERRAGENS", min: 10 },
+    { key: "3430170", name: "ALCA PREF DIST CAA 336,4 MCM", category: "FERRAGENS", min: 10 },
+    { key: "3430180", name: "ALCA PREF DIST ALUM 2/0AWG 711MM", category: "FERRAGENS", min: 10 },
+    { key: "3430190", name: "ALCA PREF DIST 25,00MM2 483MM", category: "FERRAGENS", min: 10 },
+    { key: "3430200", name: "ALCA PREF DIST COBRE 35 MM2", category: "FERRAGENS", min: 10 },
+    { key: "3430210", name: "ALCA PREF DIST 70,00MM2 724M", category: "FERRAGENS", min: 10 },
+    { key: "3430220", name: "ALCA PREF DIST COBRE 120 MM2", category: "FERRAGENS", min: 10 },
+    { key: "3430350", name: "ALCA PREFORMADA ESTAI 7,90 MM EAR", category: "FERRAGENS", min: 10 },
+    { key: "3430360", name: "ALCA PREFORMADA ESTAI 9,50 MM EAR", category: "FERRAGENS", min: 10 },
+    { key: "3430370", name: "ALCA PREFORMADA ESTAI 6,40 MM MR", category: "FERRAGENS", min: 10 },
+    { key: "3430380", name: "ALCA PREFORMADA ESTAI 9,50 MM MR", category: "FERRAGENS", min: 10 },
+    { key: "3430520", name: "ALCA PREF SERV AS AL 35 MM2 NI", category: "FERRAGENS", min: 10 },
+    { key: "3430530", name: "ALCA PREF SERV CONC COBRE 1X6+1X6 MM2", category: "FERRAGENS", min: 10 },
+    { key: "3430535", name: "ALCA PREF SERV CONC COBRE 1X10+1X10 MM2", category: "FERRAGENS", min: 10 },
+    { key: "3430538", name: "ALCA PREF DIST GALV 70,00MM2 1000MM", category: "FERRAGENS", min: 10 },
+    { key: "3430539", name: "ALCA PREF DIST GALV 185,00MM2 1300MM", category: "FERRAGENS", min: 10 },
+    { key: "3430543", name: "ALCA PREF SERV AS COBRE 16 MM2 NI", category: "FERRAGENS", min: 10 },
+    { key: "3430545", name: "ALCA PREF DIST GALV 50,00MM2 N. ISOL.", category: "FERRAGENS", min: 10 },
+    { key: "3430546", name: "ALCA PREF RAM LIG 35MM N. ISOL", category: "FERRAGENS", min: 10 },
+    { key: "3430547", name: "ALCA PREF RAM LIG ACO 25MM N ISOL..", category: "FERRAGENS", min: 10 },
+    { key: "3430548", name: "ALCA PREF RAM LIG 10/16MM N. ISOL", category: "FERRAGENS", min: 10 },
+    { key: "3430549", name: "AlCA PREF DIST GALV 70,00MM2 N. ISOL.", category: "FERRAGENS", min: 10 },
+    { key: "3430550", name: "ALCA PREF DIST GALV 35,00MM2.", category: "FERRAGENS", min: 10 },
+    { key: "3430551", name: "ALCA PREF DIST GALV. 70,00MM2 750MM", category: "FERRAGENS", min: 10 },
+    { key: "3430553", name: "ALCA PREF DIST GALV 185,00MM2 1000MM", category: "FERRAGENS", min: 10 },
+    { key: "3431560", name: "LACO PREF ROLD 50 MM2 AS NI CAL", category: "FERRAGENS", min: 10 },
+    { key: "3431590", name: "LACO PREF ROLD 70 MM2 AS NI CAL", category: "FERRAGENS", min: 10 },
+    { key: "3431611", name: "LACO PREF. ROLD 25 MM2 AS NI CA", category: "FERRAGENS", min: 10 },
+    { key: "3431720", name: "LACO PREF TOPO 70 MM2 PROTEGIDO", category: "FERRAGENS", min: 10 },
+    { key: "3431721", name: "LACO PREF TOPO 35 MM2 PROTEGIDO", category: "FERRAGENS", min: 10 },
+    { key: "3431760", name: "LACO PREF ROLD 35 MM2 AS NI CAL", category: "FERRAGENS", min: 10 },
+    { key: "3432010", name: "SECCIONADOR PREF 3,30-4,10MM 650MM", category: "FERRAGENS", min: 10 },
+    { key: "3433010", name: "CONECTOR L PREF CERCA 3,26-4,11 MM", category: "FERRAGENS", min: 10 },
+    { key: "3435010", name: "HASTE ACO CARB 16X2400MM 5000DAN", category: "FERRAGENS", min: 10 },
+    { key: "3435030", name: "HASTE ANCORA 20X2400MM 8000DAN", category: "FERRAGENS", min: 10 },
+    { key: "3436010", name: "CHAPA ESTAI 76MM", category: "FERRAGENS", min: 10 },
+    { key: "3454001", name: "ARRUELA PRESILHA ATERRAMENTO FURO 18MM", category: "FERRAGENS", min: 10 },
+    { key: "3458030", name: "TAMPAO CIRCULAR FERRO 806 MM", category: "FERRAGENS", min: 10 },
+    { key: "3460025", name: "ELETRODUTO AÇO DIÂM 100MM 03M", category: "FERRAGENS", min: 10 },
+    { key: "3461100", name: "ELETRODUTO PVC ROSQ 1/2\"", category: "FERRAGENS", min: 10 },
+    { key: "3464120", name: "BUCHA ELETRODUTO AL 4\"", category: "FERRAGENS", min: 10 },
+    { key: "3464370", name: "CURVA ELETRODUTO ACO 90 ROSQ 4\"", category: "FERRAGENS", min: 10 },
+    { key: "3464535", name: "LUVA ELET MET 100", category: "FERRAGENS", min: 10 },
+    { key: "3465235", name: "CURVA ELETRODUTO PVC 90 RL ROSQ 3/4\"", category: "FERRAGENS", min: 10 },
+    { key: "3470008", name: "HASTE ATERRAM CIRC 13,0X2400,0MM", category: "FERRAGENS", min: 10 },
+    { key: "3470080", name: "HASTE TERRA COBRE 19X3048MM", category: "FERRAGENS", min: 10 },
+    { key: "3480270", name: "PARAFUSO ABAU SAE1010 M16X45MM", category: "FERRAGENS", min: 10 },
+    { key: "3480275", name: "PARAFUSO ABAU ACO CARB M16X70MM", category: "FERRAGENS", min: 10 },
+    { key: "3480280", name: "PARAFUSO ABAU SAE1010 M16X150MM", category: "FERRAGENS", min: 10 },
+    { key: "3480285", name: "PARAFUSO CAB QUAD ACO 12X125", category: "FERRAGENS", min: 10 },
+    { key: "3480300", name: "PARAFUSO QUAD. SAE1010/20 M16X150,0MM", category: "FERRAGENS", min: 10 },
+    { key: "3480305", name: "PARAFUSO CAB QUAD ACO 16X200", category: "FERRAGENS", min: 10 },
+    { key: "3480310", name: "PARAFUSO CAB QUAD ACO 16X250", category: "FERRAGENS", min: 10 },
+    { key: "3480315", name: "PARAFUSO CAB QUAD. ACO 16X300", category: "FERRAGENS", min: 10 },
+    { key: "3480320", name: "PARAFUSO CAB QUAD ACO 16X350", category: "FERRAGENS", min: 10 },
+    { key: "3480325", name: "PARAFUSO CAB QUAD ACO 16X400", category: "FERRAGENS", min: 10 },
+    { key: "3480330", name: "PARAFUSO CAB QUAD ACO 16X450", category: "FERRAGENS", min: 10 },
+    { key: "3480335", name: "PARAFUSO CAB QUAD ACO 16X500", category: "FERRAGENS", min: 10 },
+    { key: "3480340", name: "PARAFUSO CAB QUAD ACO 16X550", category: "FERRAGENS", min: 10 },
+    { key: "3480355", name: "PARAFUSO CAB QUAD ACO 20X450", category: "FERRAGENS", min: 10 },
+    { key: "3480405", name: "PARAFUSO QUAD SAE1010/20 M16X50,0MM", category: "FERRAGENS", min: 10 },
+    { key: "3480410", name: "PARAFUSO QUAD SAE1010/20 M16X125,0MM", category: "FERRAGENS", min: 10 },
+    { key: "3480480", name: "PARAFUSO CAB QUAD ACO 12X250", category: "FERRAGENS", min: 10 },
+    { key: "3480490", name: "PARAFUSO CAB QUAD ACO 16X700", category: "FERRAGENS", min: 10 },
+    { key: "3480520", name: "PARAFUSO CAB SEXT ACO 10X25", category: "FERRAGENS", min: 10 },
+    { key: "3480565", name: "PARAFUSO DUPLO ACO 16X400", category: "FERRAGENS", min: 10 },
+    { key: "3480645", name: "PARAFUSO CAB SEXT 1/2\" X 40,0MM", category: "FERRAGENS", min: 10 },
+    { key: "3480922", name: "PARAFUSO CAB QUAD. ACO 16X100", category: "FERRAGENS", min: 10 },
+    { key: "3481014", name: "PARAFUSO CAB SEXT INOX 12X30", category: "FERRAGENS", min: 10 },
+    { key: "3481027", name: "PARAFUSO CAB SEXT BR 12X50,0MM", category: "FERRAGENS", min: 10 },
+    { key: "3481046", name: "PARAFUSO CAB SEX T INOX/DURIUM 12X50MM", category: "FERRAGENS", min: 10 },
+    { key: "3484058", name: "PARAFUSO OLHAL ACO 16X250", category: "FERRAGENS", min: 10 },
+    { key: "3485003", name: "PARAFUSO SEGURANCA LOBULAR M6X35MM", category: "FERRAGENS", min: 10 },
+    { key: "3485166", name: "PARAFUSO PRISIONEIRO ACO 85MM", category: "FERRAGENS", min: 10 },
+    { key: "3485180", name: "PARAFUSO SEGURANCA CABECA ESP M6X16MM", category: "FERRAGENS", min: 10 },
+    { key: "3486040", name: "OLHAL P/PARAF FOFO M16-5/8\" 5000DAN", category: "FERRAGENS", min: 10 },
+    { key: "3488003", name: "PARAFUSO AUTO-ATAR PANELA 4,8X32,0MM FN", category: "FERRAGENS", min: 10 },
+    { key: "3490080", name: "PORCA QUAD SAE1020 MG M16", category: "FERRAGENS", min: 10 },
+    { key: "3493105", name: "ARRUELA PRES ACO CARB GF M16", category: "FERRAGENS", min: 10 },
+    { key: "3493115", name: "ARRUELA PRES ACO PARAF 20,0MM", category: "FERRAGENS", min: 10 },
+    { key: "3493215", name: "ARRUELA QUAD AL 40 F14,00", category: "FERRAGENS", min: 10 },
+    { key: "3493235", name: "ARRUELA QUAD ACO 32 F12,00", category: "FERRAGENS", min: 10 },
+    { key: "3493265", name: "ARRUELA QUAD ACO 100 F18,00", category: "FERRAGENS", min: 10 },
+    { key: "3493285", name: "ARRUELA QUAD ACO 100 F22,00", category: "FERRAGENS", min: 10 },
+    { key: "3493315", name: "ARRUELA LIS QUAD SAE1020 M18", category: "FERRAGENS", min: 10 },
+    { key: "3493325", name: "ARRUELA QUAD ACO 38 F14,00", category: "FERRAGENS", min: 10 },
+
+
+// CONTINUAÇÃO DE FERRAGENS (Extraído da sua planilha)
+    { key: "3411094", name: "CANTONEIRA ACO L 76X76X7MM - 2M", category: "FERRAGENS", min: 10 },
+    { key: "3412010", name: "PARAFUSO CAB QUAD M16 X 200MM", category: "FERRAGENS", min: 20 },
+    { key: "3412015", name: "PARAFUSO CAB QUAD M16 X 250MM", category: "FERRAGENS", min: 20 },
+    { key: "3412050", name: "ARRUELA QUADRADA 18 X 38 X 3MM", category: "FERRAGENS", min: 50 },
+    { key: "3413005", name: "PINO PARA ISOLADOR DE TOPO 15KV", category: "FERRAGENS", min: 10 },
+    { key: "3415020", name: "CINTA CIRCULAR PARA POSTE 190MM", category: "FERRAGENS", min: 10 },
+    // Adicione os demais itens da imagem seguindo este padrão...
+
+
+
+    
+    // DIVERSOS/MATERIAIS (8 itens)
+    { key: "3504015", name: "BUCHA PLAST 5MM C/PARAFUSO", category: "MATERIAIS", min: 10 },
+    { key: "3521319", name: "BRACADEIRA FIXACAO CABO 20,0-32,0MM", category: "MATERIAIS", min: 10 },
+    { key: "4401035", name: "CORDOALHA ACO ZINCADO EAR 7,9 MM", category: "MATERIAIS", min: 10 },
+    { key: "4404025", name: "ARAME ACO ZINCADO 8 BWG", category: "MATERIAIS", min: 10 },
+    { key: "4404026", name: "ARAME LISO ACO CARB GALV 2,10MM", category: "MATERIAIS", min: 10 },
+    { key: "5040005", name: "GRAMPO ACO FITA 3/4\"", category: "MATERIAIS", min: 10 },
+    { key: "5040025", name: "FITA ACO INOXIDAVEL 0,50X19,00MM", category: "MATERIAIS", min: 10 },
+    { key: "7511022", name: "PLACA INDICATIVA LOCALIZACAO EQUIP AL", category: "MATERIAIS", min: 10 },
+    
+    // SUCATAS (19 itens)
     { key: "7900005", name: "SUCATA ACO", category: "SUCATAS", min: 1 },
     { key: "7910006", name: "SUCATA FIO/CABO COBRE COBERTO/ISOLADO.", category: "SUCATAS", min: 1 },
     { key: "7910008", name: "SUCATA CABO/FIO COBRE NU", category: "SUCATAS", min: 1 },
@@ -856,30 +928,28 @@
     { key: "7936000", name: "SUCATA POSTE FIBRA", category: "SUCATAS", min: 1 },
     { key: "7940002", name: "SUCATA TRAFO DISTRIBUICAO", category: "SUCATAS", min: 1 },
     { key: "7942038", name: "SUCATA ELETRICA-ELETRONICA", category: "SUCATAS", min: 1 },
-    { key: "9174982", name: "MOLDURA POLIMERICA FIO TERRA 30X 3000MM", category: "MOLDURAS", min: 5 }
+    
+
+    // MOLDURA (1 item)
+    { key: "9174982", name: "MOLDURA POLIMERICA FIO TERRA 30X3000MM", category: "MATERIAIS", min: 10 }
+
+    
+
+
+    
 ];
 
-console.log('Total de produtos:', allProducts.length);
-console.log('Produtos carregados com sucesso!');
+console.log(`✅ Sistema inicializado com ${allProducts.length} produtos cadastrados.`);
         
+        // Criar objeto products para compatibilidade
         const products = {};
-        allProducts.forEach(p => { products[p.key] = { name: p.name, min: p.min, category: p.category }; });
+        allProducts.forEach(p => {
+            products[p.key] = { name: p.name, min: p.min, category: p.category };
+        });
         
+        // Variáveis para controle do estoque filtrado
         let stockData = {};
         let filteredStockItems = [];
-        
-        // Debounce para evitar múltiplas chamadas
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
         
         function renderProductSelector(containerId, searchInputId, hiddenInputId, optionsContainerId, onSelectCallback) {
             const searchInput = document.getElementById(searchInputId);
@@ -934,12 +1004,10 @@ console.log('Produtos carregados com sucesso!');
                 });
             }
             
-            const debouncedRender = debounce(() => {
-                const filtered = filterProducts(searchInput.value);
+            searchInput.addEventListener('input', (e) => {
+                const filtered = filterProducts(e.target.value);
                 renderOptions(filtered);
-            }, 300);
-            
-            searchInput.addEventListener('input', debouncedRender);
+            });
             
             renderOptions(allProducts);
             
@@ -961,8 +1029,13 @@ console.log('Produtos carregados com sucesso!');
         function showToast(message, type = 'success') { const container = document.getElementById('toastContainer'); const toast = document.createElement('div'); toast.className = `toast toast-${type}`; toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i><span>${message}</span>`; container.appendChild(toast); setTimeout(() => toast.remove(), 3000); }
         function showLoading() { document.getElementById('loadingOverlay').classList.add('show'); } function hideLoading() { document.getElementById('loadingOverlay').classList.remove('show'); }
         function formatDateTime(timestamp) { return timestamp ? new Date(timestamp).toLocaleString('pt-BR') : '-'; }
+        function formatarMoeda(valor) { if(!valor && valor !== 0) return '-'; return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parseFloat(valor)); }
+        function formatarValor(input) { let valor = input.value.replace(/[^0-9,]/g, '').replace(',', '.'); if(valor && !isNaN(parseFloat(valor))) { input.value = parseFloat(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); } }
+        function limparFormatacaoValor(valorStr) { if(!valorStr) return null; return parseFloat(valorStr.replace(/\./g, '').replace(',', '.')); }
+        function generateProtocol() { const d = new Date(); return `SOL-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${Math.floor(Math.random()*10000).toString().padStart(4,'0')}`; }
         function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m) { if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; return m; }); }
         
+        // Função para filtrar e ordenar o estoque
         function filterAndSortStock() {
             const searchTerm = document.getElementById('stockSearchInput')?.value.toLowerCase() || '';
             const categoryFilter = document.getElementById('stockCategoryFilter')?.value || 'all';
@@ -970,6 +1043,7 @@ console.log('Produtos carregados com sucesso!');
             
             let filtered = [...allProducts];
             
+            // Filtrar por busca (nome, código ou categoria)
             if (searchTerm) {
                 filtered = filtered.filter(p => 
                     p.name.toLowerCase().includes(searchTerm) || 
@@ -978,27 +1052,51 @@ console.log('Produtos carregados com sucesso!');
                 );
             }
             
+            // Filtrar por categoria
             if (categoryFilter !== 'all') {
                 filtered = filtered.filter(p => p.category === categoryFilter);
             }
             
+            // Adicionar quantidade do estoque
             filtered = filtered.map(p => ({
                 ...p,
                 quantity: stockData[p.key]?.quantidade || 0
             }));
             
+            // Ordenar
             switch(sortType) {
-                case 'name_asc': filtered.sort((a, b) => a.name.localeCompare(b.name)); break;
-                case 'name_desc': filtered.sort((a, b) => b.name.localeCompare(a.name)); break;
-                case 'qty_desc': filtered.sort((a, b) => b.quantity - a.quantity); break;
-                case 'qty_asc': filtered.sort((a, b) => a.quantity - b.quantity); break;
-                case 'status': filtered.sort((a, b) => { const getOrder = (q, min) => q === 0 ? 3 : (q < min ? 2 : 1); return getOrder(b.quantity, b.min) - getOrder(a.quantity, a.min); }); break;
-                case 'code_asc': filtered.sort((a, b) => a.key.localeCompare(b.key)); break;
-                default: filtered.sort((a, b) => a.name.localeCompare(b.name));
+                case 'name_asc':
+                    filtered.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+                case 'name_desc':
+                    filtered.sort((a, b) => b.name.localeCompare(a.name));
+                    break;
+                case 'qty_desc':
+                    filtered.sort((a, b) => b.quantity - a.quantity);
+                    break;
+                case 'qty_asc':
+                    filtered.sort((a, b) => a.quantity - b.quantity);
+                    break;
+                case 'status':
+                    filtered.sort((a, b) => {
+                        const getStatusOrder = (q, min) => {
+                            if (q === 0) return 3;
+                            if (q < min) return 2;
+                            return 1;
+                        };
+                        return getStatusOrder(b.quantity, b.min) - getStatusOrder(a.quantity, a.min);
+                    });
+                    break;
+                case 'code_asc':
+                    filtered.sort((a, b) => a.key.localeCompare(b.key));
+                    break;
+                default:
+                    filtered.sort((a, b) => a.name.localeCompare(b.name));
             }
             
             filteredStockItems = filtered;
             
+            // Atualizar estatísticas
             const total = filtered.length;
             const normal = filtered.filter(p => p.quantity > 0 && p.quantity >= p.min).length;
             const low = filtered.filter(p => p.quantity > 0 && p.quantity < p.min).length;
@@ -1010,12 +1108,16 @@ console.log('Produtos carregados com sucesso!');
             document.getElementById('stockEmptyCount').innerText = empty;
             document.getElementById('stockDisplayCount').innerText = total;
             
+            // Renderizar tabela
             renderStockTable(filtered);
         }
         
         function renderStockTable(items) {
             const tbody = document.getElementById('stockList');
-            if (!items.length) { tbody.innerHTML='<tr><td colspan="7">Nenhum produto encontrado</td></tr>'; return; }
+            if (!items.length) {
+                tbody.innerHTML = '<tr><td colspan="7">Nenhum produto encontrado</td></tr>';
+                return;
+            }
             
             let html = '';
             items.forEach(p => {
@@ -1025,27 +1127,36 @@ console.log('Produtos carregados com sucesso!');
                 const statusText = q === 0 ? 'Esgotado' : (q < min ? 'Baixo' : 'Normal');
                 const statusClass = status === 'danger' ? 'badge-danger' : (status === 'warning' ? 'badge-warning' : 'badge-success');
                 
-                html += `<tr><td><strong>${escapeHtml(p.name)}</strong><div class="product-category-badge">${p.category}</div></td><td><code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 6px;">${p.key}</code></td><td><span style="color: var(--primary);">${p.category}</span></td><td><strong style="font-size: 1.1rem;">${q}</strong></td><td>${min}</td><td><span class="badge ${statusClass}">${statusText}</span></td><td><button class="btn btn-outline" onclick="editStock('${p.key}','${escapeHtml(p.name)}',${q})" style="padding:6px 12px;"><i class="fas fa-edit"></i></button><button class="btn btn-danger" onclick="deleteStock('${p.key}','${escapeHtml(p.name)}')" style="padding:6px 12px; margin-left: 5px;"><i class="fas fa-trash"></i></button></td></tr>`;
+                html += `
+                    <tr>
+                        <td>
+                            <strong>${escapeHtml(p.name)}</strong>
+                            <div class="product-category-badge">${p.category}</div>
+                        </td>
+                        <td><code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 6px;">${p.key}</code></td>
+                        <td><span style="color: var(--primary);">${p.category}</span></td>
+                        <td><strong style="font-size: 1.1rem;">${q}</strong></td>
+                        <td>${min}</td>
+                        <td><span class="badge ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <button class="btn btn-outline" onclick="editStock('${p.key}','${escapeHtml(p.name)}',${q})" style="padding:6px 12px;">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteStock('${p.key}','${escapeHtml(p.name)}')" style="padding:6px 12px; margin-left: 5px;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
             });
             tbody.innerHTML = html;
         }
         
-        // Load stock with caching - reduz tráfego usando cache
         function loadStock() { 
-            const now = Date.now();
-            if (localStockCache && (now - lastStockSync) < SYNC_INTERVAL) {
-                // Usa cache se estiver dentro do intervalo
-                stockData = localStockCache;
-                filterAndSortStock();
-                return;
-            }
-            
             onValue(ref(db,'estoque'), (snap) => { 
-                stockData = snap.val() || {};
-                localStockCache = {...stockData};
-                lastStockSync = now;
+                stockData = snap.val() || {}; 
                 filterAndSortStock();
-            }, { onlyOnce: true }); // onlyOnce reduz tráfego significativamente
+            }); 
         }
         
         window.editStock = async function(id, name, curr){ 
@@ -1054,10 +1165,8 @@ console.log('Produtos carregados com sucesso!');
                 showLoading(); 
                 try{ 
                     await set(ref(db,`estoque/${id}`),{ nome:name, quantidade:parseInt(n), cadastradoPor:currentUser?.email, dataCadastro:serverTimestamp() }); 
-                    showToast('Estoque atualizado!');
-                    // Invalida cache após atualização
-                    localStockCache = null;
-                    loadStock();
+                    await push(ref(db,'activities'),{ userId:currentUser?.uid, userEmail:currentUser?.email, action:`Editou estoque de ${name}: ${curr} → ${n}`, timestamp:serverTimestamp() }); 
+                    showToast('Estoque atualizado!'); 
                 }catch(e){ showToast('Erro!','error'); }finally{ hideLoading(); } 
             } 
         };
@@ -1067,9 +1176,8 @@ console.log('Produtos carregados com sucesso!');
                 showLoading(); 
                 try{ 
                     await set(ref(db,`estoque/${id}`),null); 
-                    showToast('Removido!');
-                    localStockCache = null;
-                    loadStock();
+                    await push(ref(db,'activities'),{ userId:currentUser?.uid, userEmail:currentUser?.email, action:`Removeu ${name} do estoque`, timestamp:serverTimestamp() }); 
+                    showToast('Removido!'); 
                 }catch(e){ showToast('Erro!','error'); }finally{ hideLoading(); } 
             } 
         };
@@ -1087,17 +1195,16 @@ console.log('Produtos carregados com sucesso!');
                     if(curr){ curr.quantidade+=qty; return curr; } 
                     return { nome:product.name, quantidade:qty, cadastradoPor:currentUser?.email, dataCadastro:serverTimestamp() }; 
                 }); 
+                await push(ref(db,'activities'),{ userId:currentUser?.uid, userEmail:currentUser?.email, action:`Adicionou ${qty}x ${product.name} ao estoque`, timestamp:serverTimestamp() }); 
                 showToast(`+${qty} ${product.name}`); 
                 e.target.reset();
                 document.getElementById('stockProductKey').value = '';
                 document.getElementById('stockProductSearch').value = '';
-                localStockCache = null;
-                loadStock();
             }catch(e){ showToast('Erro!','error'); }finally{ hideLoading(); } 
         });
         
-        const debouncedFilterStock = debounce(() => filterAndSortStock(), 300);
-        document.getElementById('stockSearchInput')?.addEventListener('input', debouncedFilterStock);
+        // Event listeners para os filtros de estoque
+        document.getElementById('stockSearchInput')?.addEventListener('input', () => filterAndSortStock());
         document.getElementById('stockCategoryFilter')?.addEventListener('change', () => filterAndSortStock());
         document.getElementById('stockSortSelect')?.addEventListener('change', () => filterAndSortStock());
         document.getElementById('clearStockFilters')?.addEventListener('click', () => {
@@ -1129,12 +1236,25 @@ console.log('Produtos carregados com sucesso!');
         function updateStatistics(filteredRequests) {
             const obrasComNumero = filteredRequests.filter(r => r.numeroObra && r.numeroObra.trim() !== '');
             const totalObras = obrasComNumero.length;
+            
+            let somaValores = 0;
+            let countComValor = 0;
+            filteredRequests.forEach(r => {
+                if (r.valorObra && !isNaN(parseFloat(r.valorObra))) {
+                    somaValores += parseFloat(r.valorObra);
+                    countComValor++;
+                }
+            });
+            
             const totalConcluidas = filteredRequests.filter(r => r.status === 'CONCLUIDO').length;
             const totalPendentes = filteredRequests.filter(r => r.status === 'PENDENTE').length;
+            const media = countComValor > 0 ? somaValores / countComValor : 0;
             
             document.getElementById('totalObrasCount').innerText = totalObras;
+            document.getElementById('totalValorObras').innerHTML = formatarMoeda(somaValores);
             document.getElementById('totalConcluidasCount').innerText = totalConcluidas;
             document.getElementById('totalPendentesCount').innerText = totalPendentes;
+            document.getElementById('mediaValorObra').innerHTML = formatarMoeda(media);
         }
         
         const menuToggle = document.getElementById('menuToggle'), sidebar = document.getElementById('sidebar'), overlay = document.getElementById('sidebarOverlay');
@@ -1163,21 +1283,19 @@ console.log('Produtos carregados com sucesso!');
         };
         window.closeNewRequestModal = () => document.getElementById('newRequestModal').classList.remove('show');
         
-        const debouncedStockCheck = debounce(async () => {
+        document.getElementById('requestQuantity')?.addEventListener('change', async()=>{ 
             const pk = document.getElementById('requestProductKey').value;
             const qty = parseInt(document.getElementById('requestQuantity').value);
             if(pk && qty){ 
-                // Usa cache local quando possível
-                const stockQty = stockData[pk]?.quantidade || 0;
+                const snap=await get(ref(db,`estoque/${pk}`)); 
+                const disp=snap.val()?.quantidade||0; 
                 const w=document.getElementById('stockWarning'); 
-                if(stockQty===0){ w.innerHTML='<i class="fas fa-exclamation-triangle"></i> Esgotado!'; w.style.color='var(--danger)'; }
-                else if(qty > stockQty){ w.innerHTML=`<i class="fas fa-exclamation-triangle"></i> Estoque insuficiente! Disponível: ${stockQty}`; w.style.color='var(--danger)'; }
-                else if(stockQty<5){ w.innerHTML=`<i class="fas fa-info-circle"></i> Disponível: ${stockQty}`; w.style.color='var(--warning)'; }
-                else{ w.innerHTML=`<i class="fas fa-check-circle"></i> Disponível: ${stockQty}`; w.style.color='var(--success)'; } 
-            }
-        }, 500);
-        
-        document.getElementById('requestQuantity')?.addEventListener('input', debouncedStockCheck);
+                if(disp===0){ w.innerHTML='<i class="fas fa-exclamation-triangle"></i> Esgotado!'; w.style.color='var(--danger)'; }
+                else if(qty > disp){ w.innerHTML=`<i class="fas fa-exclamation-triangle"></i> Estoque insuficiente! Disponível: ${disp}`; w.style.color='var(--danger)'; }
+                else if(disp<5){ w.innerHTML=`<i class="fas fa-info-circle"></i> Disponível: ${disp}`; w.style.color='var(--warning)'; }
+                else{ w.innerHTML=`<i class="fas fa-check-circle"></i> Disponível: ${disp}`; w.style.color='var(--success)'; } 
+            } 
+        });
         
         document.getElementById('newRequestForm').addEventListener('submit', async(e)=>{ 
             e.preventDefault(); 
@@ -1186,29 +1304,20 @@ console.log('Produtos carregados com sucesso!');
             const name = document.getElementById('requesterName').value.trim();
             const emailReq = currentUser?.email;
             const numeroObra = document.getElementById('numeroObra').value.trim();
-            const nomeObra = document.getElementById('nomeObra').value.trim();
+            const valorObraInput = document.getElementById('valorObra').value;
+            let valorObra = valorObraInput ? limparFormatacaoValor(valorObraInput) : null;
             const product = allProducts.find(p => p.key === pk);
             
             if(!pk || !product || !qty || !name){ showToast('Preencha produto, quantidade e solicitante!','error'); return; } 
             if(!emailReq){ showToast('Usuário não autenticado!','error'); return; }
-            const stockQty = stockData[pk]?.quantidade || 0;
-            if(stockQty<qty){ showToast(`Estoque insuficiente! Disponível: ${stockQty}`,'error'); return; } 
+            const snap=await get(ref(db,`estoque/${pk}`)); 
+            const avail=snap.val()?.quantidade||0; 
+            if(avail<qty){ showToast(`Estoque insuficiente! Disponível: ${avail}`,'error'); return; } 
             showLoading(); 
             try{ 
                 const protocol=generateProtocol(); 
-                await push(ref(db,'solicitacoes'),{ 
-                    protocolo:protocol, 
-                    productKey:pk, 
-                    transformadorNome:product.name, 
-                    quantidadeSolicitada:qty, 
-                    solicitante:name, 
-                    usuarioSolicitante:emailReq, 
-                    numeroObra:numeroObra || '', 
-                    nomeObra:nomeObra || '', 
-                    status:'PENDENTE', 
-                    dataSolicitacao:serverTimestamp(), 
-                    solicitadoPor:currentUser?.email 
-                }); 
+                await push(ref(db,'solicitacoes'),{ protocolo:protocol, productKey:pk, transformadorNome:product.name, quantidadeSolicitada:qty, solicitante:name, usuarioSolicitante:emailReq, numeroObra:numeroObra || '', valorObra:valorObra, status:'PENDENTE', dataSolicitacao:serverTimestamp(), solicitadoPor:currentUser?.email }); 
+                await push(ref(db,'activities'),{ userId:currentUser?.uid, userEmail:currentUser?.email, action:`Criou solicitação ${protocol} - ${qty}x ${product.name}`, timestamp:serverTimestamp() }); 
                 showToast(`Solicitação ${protocol} criada!`); 
                 closeNewRequestModal(); 
                 e.target.reset(); 
@@ -1216,12 +1325,9 @@ console.log('Produtos carregados com sucesso!');
                 document.getElementById('requestProductSearch').value = '';
                 document.getElementById('stockWarning').innerHTML='';
                 if(currentUser && currentUser.email) document.getElementById('requesterEmail').value = currentUser.email;
-                localRequestsCache = null;
                 loadRequests(); 
             }catch(e){ showToast('Erro ao criar!','error'); }finally{ hideLoading(); } 
         });
-        
-        function generateProtocol() { const d = new Date(); return `SOL-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${Math.floor(Math.random()*10000).toString().padStart(4,'0')}`; }
         
         window.completeRequest = async function(id){ 
             if(!confirm('Confirmar retirada? Esta ação baixará o estoque.')) return; 
@@ -1238,8 +1344,6 @@ console.log('Produtos carregados com sucesso!');
                 }); 
                 await update(ref(db),{ [`solicitacoes/${id}/status`]:'CONCLUIDO', [`solicitacoes/${id}/dataConclusao`]:serverTimestamp(), [`solicitacoes/${id}/concluidoPor`]:currentUser?.email }); 
                 showToast('Solicitação concluída!'); 
-                localStockCache = null;
-                localRequestsCache = null;
                 loadStock(); loadRequests(); 
             }catch(e){ showToast(e.message||'Erro ao concluir','error'); }finally{ hideLoading(); } 
         };
@@ -1249,8 +1353,7 @@ console.log('Produtos carregados com sucesso!');
             showLoading(); 
             try{ 
                 await update(ref(db),{ [`solicitacoes/${id}/status`]:'CANCELADO' }); 
-                showToast('Solicitação cancelada!');
-                localRequestsCache = null;
+                showToast('Solicitação cancelada!'); 
                 loadRequests(); 
             }catch(e){ showToast('Erro!','error'); }finally{ hideLoading(); } 
         };
@@ -1296,7 +1399,7 @@ console.log('Produtos carregados com sucesso!');
             pageRequests.forEach(r => {
                 const pend = r.status === 'PENDENTE';
                 const dataConclusaoFormatada = r.dataConclusao ? formatDateTime(r.dataConclusao) : '-';
-                const nomeObraExibido = r.nomeObra ? escapeHtml(r.nomeObra) : '-';
+                const valorExibido = r.valorObra ? formatarMoeda(r.valorObra) : '-';
                 
                 html += `<tr>
                     <td><strong>${escapeHtml(r.protocolo)}</strong></td>
@@ -1305,7 +1408,7 @@ console.log('Produtos carregados com sucesso!');
                     <td><span class="solicitante-highlight">${escapeHtml(r.solicitante||'-')}</span></td>
                     <td><span class="email-cell">${escapeHtml(r.usuarioSolicitante||'-')}</span></td>
                     <td>${r.numeroObra ? escapeHtml(r.numeroObra) : '-'}</td>
-                    <td><span class="nome-obra"><i class="fas fa-building"></i> ${nomeObraExibido}</span></td>
+                    <td class="valor-obra">${valorExibido}</td>
                     <td class="datetime-cell">${formatDateTime(r.dataSolicitacao)}</td>
                     <td class="datetime-cell">${dataConclusaoFormatada}</td>
                     <td>${getStatusBadge(r.status)}</td>
@@ -1315,53 +1418,38 @@ console.log('Produtos carregados com sucesso!');
             tbody.innerHTML = html;
         }
         
-        // Load requests with caching - reduz tráfego usando cache
         function loadRequests() { 
-            const now = Date.now();
-            if (localRequestsCache && (now - lastRequestsSync) < SYNC_INTERVAL) {
-                // Usa cache se estiver dentro do intervalo
-                processRequests(localRequestsCache);
-                return;
-            }
-            
             onValue(ref(db,'solicitacoes'), (snap)=>{ 
                 const reqs=snap.val()||{}; 
-                localRequestsCache = reqs;
-                lastRequestsSync = now;
-                processRequests(reqs);
-            }, { onlyOnce: true }); // onlyOnce reduz tráfego significativamente
-        }
-        
-        function processRequests(reqs) {
-            const search=document.getElementById('requestSearch')?.value.toLowerCase()||''; 
-            const filter=document.getElementById('requestStatusFilter')?.value||'all'; 
-            let filtered=[]; 
-            for(const [id,r] of Object.entries(reqs)){ 
-                if(r && r.protocolo){ 
-                    const searchMatch = !search || 
-                        r.protocolo.toLowerCase().includes(search) || 
-                        (r.solicitante||'').toLowerCase().includes(search) || 
-                        (r.usuarioSolicitante||'').toLowerCase().includes(search) ||
-                        (r.numeroObra||'').toLowerCase().includes(search) ||
-                        (r.nomeObra||'').toLowerCase().includes(search);
-                    
-                    if(!searchMatch) continue;
-                    if(filter!=='all' && r.status!==filter) continue; 
-                    filtered.push({...r,firebaseId:id}); 
+                const search=document.getElementById('requestSearch')?.value.toLowerCase()||''; 
+                const filter=document.getElementById('requestStatusFilter')?.value||'all'; 
+                let filtered=[]; 
+                for(const [id,r] of Object.entries(reqs)){ 
+                    if(r && r.protocolo){ 
+                        const searchMatch = !search || 
+                            r.protocolo.toLowerCase().includes(search) || 
+                            (r.solicitante||'').toLowerCase().includes(search) || 
+                            (r.usuarioSolicitante||'').toLowerCase().includes(search) ||
+                            (r.numeroObra||'').toLowerCase().includes(search) ||
+                            (r.valorObra && r.valorObra.toString().includes(search));
+                        
+                        if(!searchMatch) continue;
+                        if(filter!=='all' && r.status!==filter) continue; 
+                        filtered.push({...r,firebaseId:id}); 
+                    } 
                 } 
-            } 
-            filtered.sort((a,b)=>(b.dataSolicitacao||0)-(a.dataSolicitacao||0));
-            filtered = filterByDateRange(filtered);
-            allRequests = filtered;
-            updateStatistics(allRequests);
-            currentPage = 1;
-            renderRequestsPage();
-            renderPagination();
+                filtered.sort((a,b)=>(b.dataSolicitacao||0)-(a.dataSolicitacao||0));
+                filtered = filterByDateRange(filtered);
+                allRequests = filtered;
+                updateStatistics(allRequests);
+                currentPage = 1;
+                renderRequestsPage();
+                renderPagination();
+            }); 
         }
         
-        const debouncedLoadRequests = debounce(() => loadRequests(), 300);
-        document.getElementById('dataInicial')?.addEventListener('change', debouncedLoadRequests);
-        document.getElementById('dataFinal')?.addEventListener('change', debouncedLoadRequests);
+        document.getElementById('dataInicial')?.addEventListener('change', () => loadRequests());
+        document.getElementById('dataFinal')?.addEventListener('change', () => loadRequests());
         document.getElementById('limparDatasBtn')?.addEventListener('click', () => {
             document.getElementById('dataInicial').value = '';
             document.getElementById('dataFinal').value = '';
@@ -1373,116 +1461,138 @@ console.log('Produtos carregados com sucesso!');
                 showToast('Nenhuma solicitação para exportar!', 'error');
                 return;
             }
-
+            
             showLoading();
-
+            
             setTimeout(() => {
                 try {
                     const today = new Date();
                     const dataFormatada = today.toLocaleDateString('pt-BR');
                     const horaFormatada = today.toLocaleTimeString('pt-BR');
-
+                    
                     const totalSolicitacoes = allRequests.length;
-                    const totalConcluidas = allRequests.filter(r => r.status?.toUpperCase().includes('CONCLU')).length;
-                    const totalPendentes = allRequests.filter(r => r.status?.toUpperCase().includes('PENDEN')).length;
-                    const totalCanceladas = allRequests.filter(r => r.status?.toUpperCase().includes('CANCEL')).length;
-
+                    const totalConcluidas = allRequests.filter(r => r.status === 'CONCLUIDO').length;
+                    const totalPendentes = allRequests.filter(r => r.status === 'PENDENTE').length;
+                    const totalCanceladas = allRequests.filter(r => r.status === 'CANCELADO').length;
+                    const somaValores = allRequests.reduce((acc, r) => acc + (parseFloat(r.valorObra) || 0), 0);
+                    const obrasComNumero = allRequests.filter(r => r.numeroObra && r.numeroObra.trim() !== '').length;
+                    
                     const pdfContent = document.createElement('div');
-                    pdfContent.style.padding = '10px';
-                    pdfContent.style.backgroundColor = '#ffffff';
-                    pdfContent.style.color = '#000000';
-                    pdfContent.style.fontFamily = 'Arial, sans-serif';
-
+                    pdfContent.style.padding = '15px';
+                    pdfContent.style.backgroundColor = 'white';
+                    pdfContent.style.fontFamily = 'Arial, Helvetica, sans-serif';
+                    pdfContent.style.fontSize = '9pt';
+                    
                     let htmlContent = `
-                        <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000;">
-                            <h1 style="margin: 0; font-size: 22px; color: #000;">StockMaster</h1>
-                            <h2 style="margin: 5px 0; font-size: 16px; color: #333;">Relatório de Solicitações</h2>
-                            <p style="margin: 5px 0; font-size: 10px; color: #555;"> Gerado em: ${dataFormatada} às ${horaFormatada} </p>
+                        <div style="text-align: center; margin-bottom: 25px;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px;">
+                                <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #38bdf8, #3b82f6); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                    <span style="font-size: 28px;">📦</span>
+                                </div>
+                                <h1 style="color: #1e293b; margin: 0; font-size: 22px;">StockMaster</h1>
+                            </div>
+                            <h2 style="color: #475569; margin: 5px 0; font-size: 16px;">Relatório de Solicitações</h2>
+                            <p style="color: #64748b; margin: 5px 0; font-size: 10px;">
+                                Gerado em: ${dataFormatada} às ${horaFormatada}
+                            </p>
+                            <hr style="border: 1px solid #e2e8f0; margin: 15px 0;">
                         </div>
                         
-                        <div style="display: flex; justify-content: space-around; margin-bottom: 20px;">
-                            <div style="text-align: center; border: 1px solid #000; padding: 10px; border-radius: 4px; width: 20%;">
-                                <div style="font-size: 16px; font-weight: bold;">${totalSolicitacoes}</div>
-                                <div style="font-size: 10px;">Total</div>
+                        <div style="display: flex; justify-content: space-around; margin-bottom: 20px; flex-wrap: wrap;">
+                            <div style="text-align: center; padding: 8px 15px; background: #f1f5f9; border-radius: 8px;">
+                                <div style="font-size: 18px; font-weight: bold; color: #3b82f6;">${totalSolicitacoes}</div>
+                                <div style="font-size: 9px; color: #64748b;">Total Solicitações</div>
                             </div>
-                            <div style="text-align: center; border: 1px solid #000; padding: 10px; border-radius: 4px; width: 20%;">
-                                <div style="font-size: 16px; font-weight: bold; color: green;">${totalConcluidas}</div>
-                                <div style="font-size: 10px;">Concluídas</div>
+                            <div style="text-align: center; padding: 8px 15px; background: #f1f5f9; border-radius: 8px;">
+                                <div style="font-size: 18px; font-weight: bold; color: #10b981;">${totalConcluidas}</div>
+                                <div style="font-size: 9px; color: #64748b;">Concluídas</div>
                             </div>
-                            <div style="text-align: center; border: 1px solid #000; padding: 10px; border-radius: 4px; width: 20%;">
-                                <div style="font-size: 16px; font-weight: bold; color: orange;">${totalPendentes}</div>
-                                <div style="font-size: 10px;">Pendentes</div>
+                            <div style="text-align: center; padding: 8px 15px; background: #f1f5f9; border-radius: 8px;">
+                                <div style="font-size: 18px; font-weight: bold; color: #f59e0b;">${totalPendentes}</div>
+                                <div style="font-size: 9px; color: #64748b;">Pendentes</div>
                             </div>
-                            <div style="text-align: center; border: 1px solid #000; padding: 10px; border-radius: 4px; width: 20%;">
-                                <div style="font-size: 16px; font-weight: bold; color: red;">${totalCanceladas}</div>
-                                <div style="font-size: 10px;">Canceladas</div>
+                            <div style="text-align: center; padding: 8px 15px; background: #f1f5f9; border-radius: 8px;">
+                                <div style="font-size: 18px; font-weight: bold; color: #ef4444;">${totalCanceladas}</div>
+                                <div style="font-size: 9px; color: #64748b;">Canceladas</div>
+                            </div>
+                            <div style="text-align: center; padding: 8px 15px; background: #f1f5f9; border-radius: 8px;">
+                                <div style="font-size: 18px; font-weight: bold; color: #8b5cf6;">${obrasComNumero}</div>
+                                <div style="font-size: 9px; color: #64748b;">Obras Cadastradas</div>
+                            </div>
+                            <div style="text-align: center; padding: 8px 15px; background: #f1f5f9; border-radius: 8px;">
+                                <div style="font-size: 18px; font-weight: bold; color: #ec489a;">${formatarMoeda(somaValores)}</div>
+                                <div style="font-size: 9px; color: #64748b;">Valor Total (R$)</div>
                             </div>
                         </div>
                         
-                        <table style="width: 100%; border-collapse: collapse; font-size: 8pt; table-layout: fixed;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 8pt;">
                             <thead>
-                                <tr style="background-color: #eeeeee; color: #000;">
-                                    <th style="border: 1px solid #000; padding: 5px; width: 15%; text-align: left;">Protocolo</th>
-                                    <th style="border: 1px solid #000; padding: 5px; width: 20%; text-align: left;">Produto</th>
-                                    <th style="border: 1px solid #000; padding: 5px; width: 5%; text-align: center;">Qtd</th>
-                                    <th style="border: 1px solid #000; padding: 5px; width: 10%; text-align: left;">Solicitante</th>
-                                    <th style="border: 1px solid #000; padding: 5px; width: 15%; text-align: left;">Email</th>
-                                    <th style="border: 1px solid #000; padding: 5px; width: 8%; text-align: left;">Nº Obra</th>
-                                    <th style="border: 1px solid #000; padding: 5px; width: 12%; text-align: left;">Data/Hora</th>
-                                    <th style="border: 1px solid #000; padding: 5px; width: 10%; text-align: left;">Status</th>
-                                </tr>
+                                <tr style="background-color: #e2e8f0;">
+                                    <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">Protocolo</th>
+                                    <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">Produto</th>
+                                    <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">Qtd</th>
+                                    <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">Solicitante</th>
+                                    <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">Email</th>
+                                    <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">Nº Obra</th>
+                                    <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: right;">Valor (R$)</th>
+                                    <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">Data Solicitação</th>
+                                    <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">Status</th>
+                                  </tr>
                             </thead>
                             <tbody>
                     `;
-
-                    allRequests.forEach(r => {
-                        let statusExibicao = r.status || '-';
+                    
+                    allRequests.slice(0, 200).forEach(r => {
+                        const valorFormatado = r.valorObra ? formatarMoeda(r.valorObra) : '-';
+                        const statusTexto = r.status === 'PENDENTE' ? 'Pendente' : (r.status === 'CONCLUIDO' ? 'Concluída' : 'Cancelado');
                         htmlContent += `
                             <tr>
-                                <td style="border: 1px solid #000; padding: 5px; word-wrap: break-word;">${r.protocolo || '-'}</td>
-                                <td style="border: 1px solid #000; padding: 5px; word-wrap: break-word;">${r.transformadorNome || '-'}</td>
-                                <td style="border: 1px solid #000; padding: 5px; text-align: center;">${r.quantidadeSolicitada || '0'}</td>
-                                <td style="border: 1px solid #000; padding: 5px;">${r.solicitante || '-'}</td>
-                                <td style="border: 1px solid #000; padding: 5px; word-break: break-all;">${r.usuarioSolicitante || '-'}</td>
-                                <td style="border: 1px solid #000; padding: 5px;">${r.numeroObra || '-'}</td>
-                                <td style="border: 1px solid #000; padding: 5px;">${formatDateTime(r.dataSolicitacao)}</td>
-                                <td style="border: 1px solid #000; padding: 5px; font-weight: bold;">${statusExibicao}</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px;">${escapeHtml(r.protocolo)}</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px;">${escapeHtml(r.transformadorNome)}</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center;">${r.quantidadeSolicitada}</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px;">${escapeHtml(r.solicitante || '-')}</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px;">${escapeHtml(r.usuarioSolicitante || '-')}</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px;">${r.numeroObra || '-'}</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: right;">${valorFormatado}</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px;">${formatDateTime(r.dataSolicitacao)}</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px;">${statusTexto}</td>
                             </tr>
                         `;
                     });
-
+                    
                     htmlContent += `
                             </tbody>
                         </table>
-                        <div style="margin-top: 20px; text-align: center; font-size: 9pt;">
-                            <p>StockMaster - Relatório Oficial</p>
+                        <div style="margin-top: 25px; text-align: center; font-size: 8pt; color: #94a3b8;">
+                            <hr style="border: 1px solid #e2e8f0;">
+                            <p>StockMaster - Sistema de Gestão de Estoque</p>
+                            <p>Relatório gerado em ${dataFormatada} | Total de solicitações: ${totalSolicitacoes}</p>
                         </div>
                     `;
-
+                    
                     pdfContent.innerHTML = htmlContent;
-
+                    
                     const opt = {
-                        margin: [10, 5, 10, 5],
-                        filename: `relatorio_estoque_${today.getFullYear()}.pdf`,
-                        image: { type: 'jpeg', quality: 1.0 },
-                        html2canvas: { scale: 3, useCORS: true, letterRendering: true },
+                        margin: [8, 8, 8, 8],
+                        filename: `solicitacoes_${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}.pdf`,
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: { scale: 2, letterRendering: true, useCORS: true },
                         jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
                     };
-
+                    
                     html2pdf().set(opt).from(pdfContent).save();
                     showToast('PDF gerado com sucesso!');
-
+                    
                 } catch (error) {
-                    console.error(error);
-                    showToast('Erro ao gerar PDF!', 'error');
+                    console.error('Erro ao gerar PDF:', error);
+                    showToast('Erro ao gerar PDF! Tente novamente.', 'error');
                 } finally {
                     hideLoading();
                 }
-            }, 150);
+            }, 100);
         };
         
-        const debouncedRequestSearch = debounce(() => loadRequests(), 300);
-        document.getElementById('requestSearch')?.addEventListener('input', debouncedRequestSearch); 
+        document.getElementById('requestSearch')?.addEventListener('input', () => loadRequests()); 
         document.getElementById('requestStatusFilter')?.addEventListener('change', () => loadRequests());
         
         window.changePage = (page) => {
@@ -1545,7 +1655,7 @@ console.log('Produtos carregados com sucesso!');
                     renderProductSelector('requestProductContainer', 'requestProductSearch', 'requestProductKey', 'requestProductOptions', (key, name) => {
                         const qty = document.getElementById('requestQuantity').value;
                         if(qty) {
-                            debouncedStockCheck();
+                            document.getElementById('requestQuantity').dispatchEvent(new Event('change'));
                         }
                     });
                 }, 100);
