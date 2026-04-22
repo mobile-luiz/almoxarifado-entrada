@@ -14,7 +14,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     
     <style>
-        /* [Mantido o mesmo CSS do original para preservar o layout] */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --primary: #38bdf8; --primary-dark: #3b82f6; --success: #10b981;
@@ -271,16 +270,28 @@
                         
                         <div class="summary-stats" id="summaryStats">
                             <div class="stat-card"><div class="stat-value" id="totalObrasCount">-</div><div class="stat-label">Total de Pedidos</div></div>
-                            <div class="stat-card"><div class="stat-value" id="totalConcluidasCount">-</div><div class="stat-label">Pedidos Concluídas</div></div>
+                            <div class="stat-card"><div class="stat-value" id="totalConcluidasCount">-</div><div class="stat-label">Pedidos Concluídos</div></div>
                             <div class="stat-card"><div class="stat-value" id="totalPendentesCount">-</div><div class="stat-label">Pedidos Pendentes</div></div>
                         </div>
                         
                         <div class="table-container" id="requestsTableContainer">
                             <table class="data-table" id="requestsTable">
                                 <thead>
-                                    <tr><th>Protocolo</th><th>Produto</th><th>Qtd</th><th>Solicitante</th><th>Email do Solicitante</th><th>Nº Obra</th><th>Nome da Obra</th><th>Data/Hora Solicitação</th><th>Data de Conclusão</th><th>Status</th><th>Ações</th></tr>
+                                    <tr>
+                                        <th>Protocolo</th>
+                                        <th>Produto</th>
+                                        <th>Qtd</th>
+                                        <th>Solicitante</th>
+                                        <th>Email</th>
+                                        <th>Nº Obra</th>
+                                        <th>Nome Obra</th>
+                                        <th>Data Solicitação</th>
+                                        <th>Data Conclusão</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
                                 </thead>
-                                <tbody id="requestsList"><tr><td colspan="11">Carregando...</td></tr>
+                                <tbody id="requestsList"><tr><td colspan="11">Carregando......</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -325,7 +336,6 @@
         </div>
     </div>
 
-    <!-- Apenas modal de login - sem cadastro -->
     <div class="modal" id="loginModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -347,27 +357,27 @@
 
     <div class="toast-container" id="toastContainer"></div>
     <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, runTransaction, serverTimestamp, push, onValue, set, get, update, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    
-    const firebaseConfig = { apiKey: "AIzaSyCwTiqQBRBBYth4wJtjhdL1VQ0LZV7PKco", databaseURL: "https://almoxarifado-c2fbc-default-rtdb.firebaseio.com" };
-    const app = initializeApp(firebaseConfig); 
-    const db = getDatabase(app);
-    let currentUser = null;
-    let allRequests = [];
-    let currentPage = 1;
-    const itemsPerPage = 20;
-    
-    // Cache local para reduzir leituras do Firebase
-    let localStockCache = null;
-    let localRequestsCache = null;
-    let lastStockSync = 0;
-    let lastRequestsSync = 0;
-    const SYNC_INTERVAL = 15000;
-    
-    const allProducts = [
-       { key: "110015", name: "RELIGADOR 15KV 630A 3F AUT 12,5KA", category: "RELIGADORES", min: 2 },
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, runTransaction, serverTimestamp, push, onValue, set, get, update, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        
+        const firebaseConfig = { apiKey: "AIzaSyCwTiqQBRBBYth4wJtjhdL1VQ0LZV7PKco", databaseURL: "https://almoxarifado-c2fbc-default-rtdb.firebaseio.com" };
+        const app = initializeApp(firebaseConfig); 
+        const db = getDatabase(app);
+        let currentUser = null;
+        let allRequests = [];
+        let currentPage = 1;
+        const itemsPerPage = 20;
+        
+        let localStockCache = null;
+        let localRequestsCache = null;
+        let lastStockSync = 0;
+        let lastRequestsSync = 0;
+        const SYNC_INTERVAL = 15000;
+        
+        const allProducts = [
+{ key: "110015", name: "RELIGADOR 15KV 630A 3F AUT 12,5KA", category: "RELIGADORES", min: 2 },
     { key: "111004", name: "RELIGADOR 36KV 630A 3F AUT 12,5KA", category: "RELIGADORES", min: 2 },
     { key: "140033", name: "RELIG AUT 3F 15K 630A 12,5K AVAR 140003", category: "RELIGADORES", min: 2 },
     { key: "210132", name: "TRAFO 1FF 10,0KVA 15,0KV AVARIADO", category: "TRANSFORMADORES", min: 2 },
@@ -875,871 +885,66 @@
     { key: "7940002", name: "SUCATA TRAFO DISTRIBUICAO", category: "SUCATAS", min: 1 },
     { key: "7942038", name: "SUCATA ELETRICA-ELETRONICA", category: "SUCATAS", min: 1 },
     { key: "9174982", name: "MOLDURA POLIMERICA FIO TERRA 30X 3000MM", category: "MOLDURAS", min: 5 }
-    ];
-    
-    const products = {};
-    allProducts.forEach(p => { products[p.key] = { name: p.name, min: p.min, category: p.category }; });
-    
-    let stockData = {};
-    let filteredStockItems = [];
-    
-    // ==================== FUNÇÕES DE LOGIN VIA REALTIME DATABASE ====================
-    
-    function decodeBase64(str) {
-        try {
-            return atob(str);
-        } catch(e) {
-            return str;
+        ];
+        
+        const products = {};
+        allProducts.forEach(p => { products[p.key] = { name: p.name, min: p.min, category: p.category }; });
+        
+        let stockData = {};
+        let filteredStockItems = [];
+        
+        function decodeBase64(str) {
+            try { return atob(str); } catch(e) { return str; }
         }
-    }
-    
-    async function loginWithDatabase(email, password) {
-        try {
-            const usuariosRef = ref(db, 'usuarios');
-            const snapshot = await get(usuariosRef);
-            const usuarios = snapshot.val();
-            
-            if (!usuarios) {
-                console.log('Nenhum usuário encontrado no banco');
+        
+        async function loginWithDatabase(email, password) {
+            try {
+                const usuariosRef = ref(db, 'usuarios');
+                const snapshot = await get(usuariosRef);
+                const usuarios = snapshot.val();
+                
+                if (!usuarios) return false;
+                
+                for (const [id, user] of Object.entries(usuarios)) {
+                    if (user.email === email) {
+                        const decodedPassword = decodeBase64(user.senha);
+                        if (decodedPassword === password) {
+                            currentUser = {
+                                uid: id,
+                                email: user.email,
+                                nome: user.nome || user.email.split('@')[0],
+                                role: user.role || 'user',
+                                cidade: user.cidade || '',
+                                estado: user.estado || ''
+                            };
+                            await update(ref(db, `usuarios/${id}`), { ultimoAcesso: Date.now() });
+                            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            } catch (error) {
+                console.error('Erro no login:', error);
                 return false;
             }
-            
-            for (const [id, user] of Object.entries(usuarios)) {
-                if (user.email === email) {
-                    const decodedPassword = decodeBase64(user.senha);
-                    
-                    if (decodedPassword === password) {
-                        currentUser = {
-                            uid: id,
-                            email: user.email,
-                            nome: user.nome || user.email.split('@')[0],
-                            role: user.role || 'user',
-                            cidade: user.cidade || '',
-                            estado: user.estado || ''
-                        };
-                        
-                        await update(ref(db, `usuarios/${id}`), {
-                            ultimoAcesso: Date.now()
-                        });
-                        
-                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                        return true;
-                    }
-                }
-            }
-            return false;
-        } catch (error) {
-            console.error('Erro no login:', error);
-            return false;
-        }
-    }
-    
-    function logoutDatabase() {
-        currentUser = null;
-        localStorage.removeItem('currentUser');
-        showToast('Logout realizado!');
-        
-        localStockCache = null;
-        localRequestsCache = null;
-        
-        document.getElementById('loginModal').classList.add('show');
-        document.getElementById('userName').textContent = '';
-        document.getElementById('userEmail').textContent = '';
-    }
-    
-    function checkAuthState() {
-        const savedUser = localStorage.getItem('currentUser');
-        if (savedUser) {
-            currentUser = JSON.parse(savedUser);
-            document.getElementById('userName').textContent = currentUser.nome;
-            document.getElementById('userEmail').textContent = currentUser.email;
-            
-            setTimeout(() => {
-                renderProductSelector('stockProductContainer', 'stockProductSearch', 'stockProductKey', 'stockProductOptions', (key, name) => {});
-                renderProductSelector('requestProductContainer', 'requestProductSearch', 'requestProductKey', 'requestProductOptions', (key, name) => {
-                    const qty = document.getElementById('requestQuantity').value;
-                    if(qty) debouncedStockCheck();
-                });
-            }, 100);
-            
-            navigateTo('stock');
-            return true;
-        }
-        document.getElementById('loginModal').classList.add('show');
-        return false;
-    }
-    
-    // ==================== FUNÇÕES DE ESTOQUE POR USUÁRIO ====================
-    
-    function filterAndSortStock() {
-        const searchTerm = document.getElementById('stockSearchInput')?.value.toLowerCase() || '';
-        const categoryFilter = document.getElementById('stockCategoryFilter')?.value || 'all';
-        const sortType = document.getElementById('stockSortSelect')?.value || 'name_asc';
-        
-        let filtered = [...allProducts];
-        
-        if (searchTerm) {
-            filtered = filtered.filter(p => 
-                p.name.toLowerCase().includes(searchTerm) || 
-                p.key.toLowerCase().includes(searchTerm) ||
-                p.category.toLowerCase().includes(searchTerm)
-            );
         }
         
-        if (categoryFilter !== 'all') {
-            filtered = filtered.filter(p => p.category === categoryFilter);
-        }
-        
-        // Filtrar apenas itens do usuário logado
-        filtered = filtered.map(p => ({
-            ...p,
-            quantity: stockData[p.key]?.quantidade || 0,
-            usuario: stockData[p.key]?.usuario || ''
-        })).filter(p => p.usuario === currentUser?.email || !stockData[p.key]); // Mostra itens sem dono também
-        
-        switch(sortType) {
-            case 'name_asc': filtered.sort((a, b) => a.name.localeCompare(b.name)); break;
-            case 'name_desc': filtered.sort((a, b) => b.name.localeCompare(a.name)); break;
-            case 'qty_desc': filtered.sort((a, b) => b.quantity - a.quantity); break;
-            case 'qty_asc': filtered.sort((a, b) => a.quantity - b.quantity); break;
-            case 'status': filtered.sort((a, b) => { const getOrder = (q, min) => q === 0 ? 3 : (q < min ? 2 : 1); return getOrder(b.quantity, b.min) - getOrder(a.quantity, a.min); }); break;
-            case 'code_asc': filtered.sort((a, b) => a.key.localeCompare(b.key)); break;
-            default: filtered.sort((a, b) => a.name.localeCompare(b.name));
-        }
-        
-        filteredStockItems = filtered;
-        
-        const total = filtered.length;
-        const normal = filtered.filter(p => p.quantity > 0 && p.quantity >= p.min).length;
-        const low = filtered.filter(p => p.quantity > 0 && p.quantity < p.min).length;
-        const empty = filtered.filter(p => p.quantity === 0).length;
-        
-        document.getElementById('stockTotalCount').innerText = allProducts.length;
-        document.getElementById('stockNormalCount').innerText = normal;
-        document.getElementById('stockLowCount').innerText = low;
-        document.getElementById('stockEmptyCount').innerText = empty;
-        document.getElementById('stockDisplayCount').innerText = total;
-        
-        renderStockTable(filtered);
-    }
-    
-    function renderStockTable(items) {
-        const tbody = document.getElementById('stockList');
-        if (!items.length) { tbody.innerHTML='<tr><td colspan="7">Nenhum produto encontrado</td></tr>'; return; }
-        
-        let html = '';
-        items.forEach(p => {
-            const q = p.quantity;
-            const min = p.min;
-            const status = q === 0 ? 'danger' : (q < min ? 'warning' : 'success');
-            const statusText = q === 0 ? 'Esgotado' : (q < min ? 'Baixo' : 'Normal');
-            const statusClass = status === 'danger' ? 'badge-danger' : (status === 'warning' ? 'badge-warning' : 'badge-success');
-            
-            html += `<tr>
-                        <td><strong>${escapeHtml(p.name)}</strong><div class="product-category-badge">${p.category}</div></td>
-                        <td><code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 6px;">${p.key}</code></td>
-                        <td><span style="color: var(--primary);">${p.category}</span></td>
-                        <td><strong style="font-size: 1.1rem;">${q}</strong></td>
-                        <td>${min}</td>
-                        <td><span class="badge ${statusClass}">${statusText}</span></td>
-                        <td><button class="btn btn-outline" onclick="editStock('${p.key}','${escapeHtml(p.name)}',${q})" style="padding:6px 12px;"><i class="fas fa-edit"></i></button><button class="btn btn-danger" onclick="deleteStock('${p.key}','${escapeHtml(p.name)}')" style="padding:6px 12px; margin-left: 5px;"><i class="fas fa-trash"></i></button></td>
-                    </tr>`;
-        });
-        tbody.innerHTML = html;
-    }
-    
-    function loadStock() { 
-        if(!currentUser) return;
-        
-        const now = Date.now();
-        if (localStockCache && (now - lastStockSync) < SYNC_INTERVAL) {
-            stockData = localStockCache;
-            filterAndSortStock();
-            return;
-        }
-        
-        // Buscar apenas itens do usuário logado
-        const userStockRef = query(ref(db, 'estoque'), orderByChild('usuario'), equalTo(currentUser.email));
-        onValue(userStockRef, (snap) => { 
-            stockData = snap.val() || {};
-            localStockCache = {...stockData};
-            lastStockSync = now;
-            filterAndSortStock();
-        }, { onlyOnce: true });
-    }
-    
-    window.editStock = async function(id, name, curr){ 
-        if(!currentUser) { showToast('Faça login primeiro!', 'error'); return; }
-        const n = prompt(`Editar ${name}\nQuantidade atual: ${curr}\nNova:`,curr); 
-        if(n!==null && !isNaN(parseInt(n)) && parseInt(n)>=0){ 
-            showLoading(); 
-            try{ 
-                await set(ref(db,`estoque/${id}`),{ 
-                    nome:name, 
-                    quantidade:parseInt(n), 
-                    usuario: currentUser.email,
-                    cadastradoPor:currentUser?.email, 
-                    dataCadastro:serverTimestamp() 
-                }); 
-                showToast('Estoque atualizado!');
-                localStockCache = null;
-                loadStock();
-            }catch(e){ showToast('Erro!','error'); }finally{ hideLoading(); } 
-        } 
-    };
-    
-    window.deleteStock = async function(id, name){ 
-        if(!currentUser) { showToast('Faça login primeiro!', 'error'); return; }
-        
-        // Verificar se o item pertence ao usuário
-        const stockItem = await get(ref(db, `estoque/${id}`));
-        if(stockItem.exists() && stockItem.val().usuario !== currentUser.email) {
-            showToast('Você não pode deletar itens de outro usuário!', 'error');
-            return;
-        }
-        
-        if(confirm(`Remover ${name}?`)){ 
-            showLoading(); 
-            try{ 
-                await set(ref(db,`estoque/${id}`),null); 
-                showToast('Removido!');
-                localStockCache = null;
-                loadStock();
-            }catch(e){ showToast('Erro!','error'); }finally{ hideLoading(); } 
-        } 
-    };
-    
-    document.getElementById('stockForm').addEventListener('submit', async(e)=>{ 
-        e.preventDefault(); 
-        if(!currentUser) { showToast('Faça login primeiro!', 'error'); return; }
-        const prodKey = document.getElementById('stockProductKey').value;
-        const qty = parseInt(document.getElementById('stockQuantity').value);
-        const product = allProducts.find(p => p.key === prodKey);
-        
-        if(!prodKey || !product || !qty || qty<1){ showToast('Selecione um produto e quantidade válida!','error'); return; } 
-        showLoading(); 
-        try{ 
-            await runTransaction(ref(db,`estoque/${prodKey}`), (curr)=>{ 
-                if(curr){ 
-                    // Verificar se o item pertence ao usuário
-                    if(curr.usuario && curr.usuario !== currentUser.email) {
-                        throw new Error('Este item pertence a outro usuário');
-                    }
-                    curr.quantidade += qty; 
-                    curr.usuario = currentUser.email;
-                    return curr; 
-                } 
-                return { 
-                    nome:product.name, 
-                    quantidade:qty, 
-                    usuario: currentUser.email,
-                    cadastradoPor:currentUser?.email, 
-                    dataCadastro:serverTimestamp() 
-                }; 
-            }); 
-            showToast(`+${qty} ${product.name}`); 
-            e.target.reset();
-            document.getElementById('stockProductKey').value = '';
-            document.getElementById('stockProductSearch').value = '';
-            localStockCache = null;
-            loadStock();
-        }catch(e){ 
-            showToast(e.message || 'Erro!','error'); 
-        }finally{ hideLoading(); } 
-    });
-    
-    // ==================== FUNÇÕES DE SOLICITAÇÕES POR USUÁRIO ====================
-    
-    function filterByDateRange(requests) {
-        const dataInicial = document.getElementById('dataInicial')?.value;
-        const dataFinal = document.getElementById('dataFinal')?.value;
-        if (!dataInicial && !dataFinal) return requests;
-        
-        return requests.filter(req => {
-            const dataReq = req.dataSolicitacao ? new Date(req.dataSolicitacao) : null;
-            if (!dataReq) return false;
-            if (dataInicial && dataReq < new Date(dataInicial)) return false;
-            if (dataFinal) {
-                const endDate = new Date(dataFinal);
-                endDate.setHours(23, 59, 59);
-                if (dataReq > endDate) return false;
-            }
-            return true;
-        });
-    }
-    
-    function updateStatistics(filteredRequests) {
-        const obrasComNumero = filteredRequests.filter(r => r.numeroObra && r.numeroObra.trim() !== '');
-        const totalObras = obrasComNumero.length;
-        const totalConcluidas = filteredRequests.filter(r => r.status === 'CONCLUIDO').length;
-        const totalPendentes = filteredRequests.filter(r => r.status === 'PENDENTE').length;
-        
-        document.getElementById('totalObrasCount').innerText = totalObras;
-        document.getElementById('totalConcluidasCount').innerText = totalConcluidas;
-        document.getElementById('totalPendentesCount').innerText = totalPendentes;
-    }
-    
-    function loadRequests() { 
-        if(!currentUser) return;
-        
-        const now = Date.now();
-        if (localRequestsCache && (now - lastRequestsSync) < SYNC_INTERVAL) {
-            processRequests(localRequestsCache);
-            return;
-        }
-        
-        // Buscar apenas solicitações do usuário logado
-        const userRequestsRef = query(ref(db, 'solicitacoes'), orderByChild('usuarioSolicitante'), equalTo(currentUser.email));
-        onValue(userRequestsRef, (snap)=>{ 
-            const reqs=snap.val()||{}; 
-            localRequestsCache = reqs;
-            lastRequestsSync = now;
-            processRequests(reqs);
-        }, { onlyOnce: true });
-    }
-    
-    function processRequests(reqs) {
-        const search=document.getElementById('requestSearch')?.value.toLowerCase()||''; 
-        const filter=document.getElementById('requestStatusFilter')?.value||'all'; 
-        let filtered=[]; 
-        for(const [id,r] of Object.entries(reqs)){ 
-            if(r && r.protocolo){ 
-                const searchMatch = !search || 
-                    r.protocolo.toLowerCase().includes(search) || 
-                    (r.solicitante||'').toLowerCase().includes(search) || 
-                    (r.usuarioSolicitante||'').toLowerCase().includes(search) ||
-                    (r.numeroObra||'').toLowerCase().includes(search) ||
-                    (r.nomeObra||'').toLowerCase().includes(search);
-                
-                if(!searchMatch) continue;
-                if(filter!=='all' && r.status!==filter) continue; 
-                filtered.push({...r,firebaseId:id}); 
-            } 
-        } 
-        filtered.sort((a,b)=>(b.dataSolicitacao||0)-(a.dataSolicitacao||0));
-        filtered = filterByDateRange(filtered);
-        allRequests = filtered;
-        updateStatistics(allRequests);
-        currentPage = 1;
-        renderRequestsPage();
-        renderPagination();
-    }
-    
-    window.completeRequest = async function(id){ 
-        if(!currentUser) { showToast('Faça login primeiro!', 'error'); return; }
-        
-        // Verificar se a solicitação pertence ao usuário
-        const reqSnap=await get(ref(db,`solicitacoes/${id}`));
-        const req=reqSnap.val();
-        if(!req) throw new Error('Não encontrada');
-        if(req.usuarioSolicitante !== currentUser.email) {
-            showToast('Você não pode concluir solicitações de outro usuário!', 'error');
-            return;
-        }
-        
-        if(!confirm('Confirmar retirada? Esta ação baixará o estoque.')) return; 
-        showLoading(); 
-        try{ 
-            if(req.status!=='PENDENTE'){ showToast('Solicitação não pode ser concluída!','error'); return; }
-            
-            // Verificar se o item de estoque pertence ao usuário
-            const stockItem = await get(ref(db, `estoque/${req.productKey}`));
-            if(stockItem.exists() && stockItem.val().usuario !== currentUser.email) {
-                showToast('Este produto não pertence ao seu estoque!', 'error');
-                return;
-            }
-            
-            await runTransaction(ref(db,`estoque/${req.productKey}`), (curr)=>{ 
-                if(!curr || curr.quantidade<req.quantidadeSolicitada) throw new Error('Estoque insuficiente'); 
-                if(curr.usuario && curr.usuario !== currentUser.email) throw new Error('Item não pertence ao seu estoque');
-                curr.quantidade-=req.quantidadeSolicitada; 
-                return curr; 
-            }); 
-            await update(ref(db),{ 
-                [`solicitacoes/${id}/status`]:'CONCLUIDO', 
-                [`solicitacoes/${id}/dataConclusao`]:serverTimestamp(), 
-                [`solicitacoes/${id}/concluidoPor`]:currentUser?.email 
-            }); 
-            showToast('Solicitação concluída!'); 
+        function logoutDatabase() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            showToast('Logout realizado!');
             localStockCache = null;
             localRequestsCache = null;
-            loadStock(); loadRequests(); 
-        }catch(e){ showToast(e.message||'Erro ao concluir','error'); }finally{ hideLoading(); } 
-    };
-    
-    window.cancelRequest = async function(id){ 
-        if(!currentUser) { showToast('Faça login primeiro!', 'error'); return; }
-        
-        // Verificar se a solicitação pertence ao usuário
-        const reqSnap=await get(ref(db,`solicitacoes/${id}`));
-        const req=reqSnap.val();
-        if(req && req.usuarioSolicitante !== currentUser.email) {
-            showToast('Você não pode cancelar solicitações de outro usuário!', 'error');
-            return;
+            document.getElementById('loginModal').classList.add('show');
+            document.getElementById('userName').textContent = '';
+            document.getElementById('userEmail').textContent = '';
         }
         
-        if(!confirm('Cancelar solicitação?')) return; 
-        showLoading(); 
-        try{ 
-            await update(ref(db),{ [`solicitacoes/${id}/status`]:'CANCELADO' }); 
-            showToast('Solicitação cancelada!');
-            localRequestsCache = null;
-            loadRequests(); 
-        }catch(e){ showToast('Erro!','error'); }finally{ hideLoading(); } 
-    };
-    
-    // ==================== DEMAIS FUNÇÕES (mantidas) ====================
-    
-    function debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    }
-    
-    function renderProductSelector(containerId, searchInputId, hiddenInputId, optionsContainerId, onSelectCallback) {
-        const searchInput = document.getElementById(searchInputId);
-        const hiddenInput = document.getElementById(hiddenInputId);
-        const optionsContainer = document.getElementById(optionsContainerId);
-        
-        if (!searchInput || !optionsContainer) return;
-        
-        function filterProducts(searchTerm) {
-            const term = searchTerm.toLowerCase();
-            return allProducts.filter(p => 
-                p.name.toLowerCase().includes(term) || 
-                p.key.toLowerCase().includes(term) ||
-                p.category.toLowerCase().includes(term)
-            );
-        }
-        
-        function renderOptions(filteredProducts) {
-            if (!optionsContainer) return;
-            let currentCategory = '';
-            let html = '';
-            
-            filteredProducts.forEach(product => {
-                if (product.category !== currentCategory) {
-                    currentCategory = product.category;
-                    html += `<div class="product-category">${currentCategory}</div>`;
-                }
-                html += `
-                    <div class="product-option" data-key="${product.key}" data-name="${product.name.replace(/"/g, '&quot;')}">
-                        <div style="font-weight: 500;">${product.name}</div>
-                        <div style="font-size: 0.7rem; color: #64748b;">Código: ${product.key} | Estoque Mín: ${product.min}</div>
-                    </div>
-                `;
-            });
-            
-            if (filteredProducts.length === 0) {
-                html = '<div class="product-option" style="color: #64748b; text-align: center;">Nenhum produto encontrado</div>';
-            }
-            
-            optionsContainer.innerHTML = html;
-            
-            document.querySelectorAll(`#${optionsContainerId} .product-option`).forEach(opt => {
-                opt.addEventListener('click', () => {
-                    const key = opt.dataset.key;
-                    const name = opt.dataset.name;
-                    searchInput.value = name;
-                    hiddenInput.value = key;
-                    document.querySelectorAll(`#${optionsContainerId} .product-option`).forEach(o => o.classList.remove('selected'));
-                    opt.classList.add('selected');
-                    if (onSelectCallback) onSelectCallback(key, name);
-                });
-            });
-        }
-        
-        const debouncedRender = debounce(() => {
-            const filtered = filterProducts(searchInput.value);
-            renderOptions(filtered);
-            optionsContainer.style.display = 'block';
-        }, 300);
-        
-        searchInput.addEventListener('input', debouncedRender);
-        renderOptions(allProducts);
-        
-        searchInput.addEventListener('click', () => {
-            const filtered = filterProducts(searchInput.value);
-            renderOptions(filtered);
-            optionsContainer.style.display = 'block';
-        });
-        
-        optionsContainer.style.display = 'block';
-    }
-    
-    function showToast(message, type = 'success') { 
-        const container = document.getElementById('toastContainer'); 
-        const toast = document.createElement('div'); 
-        toast.className = `toast toast-${type}`; 
-        toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i><span>${message}</span>`; 
-        container.appendChild(toast); 
-        setTimeout(() => toast.remove(), 3000); 
-    }
-    
-    function showLoading() { 
-        document.getElementById('loadingOverlay').classList.add('show'); 
-    } 
-    
-    function hideLoading() { 
-        document.getElementById('loadingOverlay').classList.remove('show'); 
-    }
-    
-    function formatDateTime(timestamp) { 
-        return timestamp ? new Date(timestamp).toLocaleString('pt-BR') : '-'; 
-    }
-    
-    function escapeHtml(str) { 
-        if(!str) return ''; 
-        return str.replace(/[&<>]/g, function(m) { 
-            if(m === '&') return '&amp;'; 
-            if(m === '<') return '&lt;'; 
-            if(m === '>') return '&gt;'; 
-            return m; 
-        }); 
-    }
-    
-    const debouncedFilterStock = debounce(() => filterAndSortStock(), 300);
-    document.getElementById('stockSearchInput')?.addEventListener('input', debouncedFilterStock);
-    document.getElementById('stockCategoryFilter')?.addEventListener('change', () => filterAndSortStock());
-    document.getElementById('stockSortSelect')?.addEventListener('change', () => filterAndSortStock());
-    document.getElementById('clearStockFilters')?.addEventListener('click', () => {
-        document.getElementById('stockSearchInput').value = '';
-        document.getElementById('stockCategoryFilter').value = 'all';
-        document.getElementById('stockSortSelect').value = 'name_asc';
-        filterAndSortStock();
-        showToast('Filtros limpos!');
-    });
-    
-    const menuToggle = document.getElementById('menuToggle'), sidebar = document.getElementById('sidebar'), overlay = document.getElementById('sidebarOverlay');
-    if(menuToggle) menuToggle.addEventListener('click', () => { sidebar.classList.toggle('mobile-open'); overlay.classList.toggle('mobile-open'); });
-    if(overlay) overlay.addEventListener('click', () => { sidebar.classList.remove('mobile-open'); overlay.classList.remove('mobile-open'); });
-    
-    function navigateTo(page) { 
-        document.querySelectorAll('.page-content').forEach(p => p.style.display = 'none'); 
-        document.getElementById(`${page}Page`).style.display = 'block'; 
-        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active')); 
-        document.querySelector(`.nav-item[data-page="${page}"]`).classList.add('active'); 
-        const titles = { stock: 'Estoque', requests: 'Solicitações' }; 
-        document.getElementById('pageTitle').textContent = titles[page]; 
-        if (page === 'stock') loadStock(); 
-        else if (page === 'requests') loadRequests(); 
-        if(sidebar) sidebar.classList.remove('mobile-open'); 
-        if(overlay) overlay.classList.remove('mobile-open'); 
-    }
-    
-    document.querySelectorAll('.nav-item').forEach(nav => nav.addEventListener('click', () => navigateTo(nav.dataset.page)));
-    
-    window.openNewRequestModal = () => {
-        if(!currentUser) { showToast('Faça login primeiro!', 'error'); return; }
-        if(currentUser && currentUser.email) document.getElementById('requesterEmail').value = currentUser.email;
-        document.getElementById('newRequestModal').classList.add('show');
-        document.getElementById('requestProductKey').value = '';
-        document.getElementById('requestProductSearch').value = '';
-        document.getElementById('stockWarning').innerHTML = '';
-    };
-    
-    window.closeNewRequestModal = () => document.getElementById('newRequestModal').classList.remove('show');
-    
-    const debouncedStockCheck = debounce(async () => {
-        const pk = document.getElementById('requestProductKey').value;
-        const qty = parseInt(document.getElementById('requestQuantity').value);
-        if(pk && qty){ 
-            const stockItem = stockData[pk];
-            const stockQty = stockItem?.quantidade || 0;
-            const pertenceAoUsuario = !stockItem || stockItem.usuario === currentUser?.email;
-            
-            const w=document.getElementById('stockWarning'); 
-            if(!pertenceAoUsuario && stockItem){ 
-                w.innerHTML='<i class="fas fa-exclamation-triangle"></i> Este produto pertence a outro usuário!'; 
-                w.style.color='var(--danger)';
-            } else if(stockQty===0){ 
-                w.innerHTML='<i class="fas fa-exclamation-triangle"></i> Esgotado!'; 
-                w.style.color='var(--danger)'; 
-            } else if(qty > stockQty){ 
-                w.innerHTML=`<i class="fas fa-exclamation-triangle"></i> Estoque insuficiente! Disponível: ${stockQty}`; 
-                w.style.color='var(--danger)'; 
-            } else if(stockQty<5){ 
-                w.innerHTML=`<i class="fas fa-info-circle"></i> Disponível: ${stockQty}`; 
-                w.style.color='var(--warning)'; 
-            } else{ 
-                w.innerHTML=`<i class="fas fa-check-circle"></i> Disponível: ${stockQty}`; 
-                w.style.color='var(--success)'; 
-            } 
-        }
-    }, 500);
-    
-    document.getElementById('requestQuantity')?.addEventListener('input', debouncedStockCheck);
-    
-    document.getElementById('newRequestForm').addEventListener('submit', async(e)=>{ 
-        e.preventDefault(); 
-        if(!currentUser) { showToast('Faça login primeiro!', 'error'); return; }
-        const pk = document.getElementById('requestProductKey').value;
-        const qty = parseInt(document.getElementById('requestQuantity').value);
-        const name = document.getElementById('requesterName').value.trim();
-        const emailReq = currentUser?.email;
-        const numeroObra = document.getElementById('numeroObra').value.trim();
-        const nomeObra = document.getElementById('nomeObra').value.trim();
-        const product = allProducts.find(p => p.key === pk);
-        
-        if(!pk || !product || !qty || !name){ showToast('Preencha produto, quantidade e solicitante!','error'); return; } 
-        if(!emailReq){ showToast('Usuário não autenticado!','error'); return; }
-        
-        const stockItem = stockData[pk];
-        const stockQty = stockItem?.quantidade || 0;
-        const pertenceAoUsuario = !stockItem || stockItem.usuario === currentUser?.email;
-        
-        if(!pertenceAoUsuario && stockItem){ 
-            showToast('Este produto não pertence ao seu estoque!', 'error'); 
-            return; 
-        }
-        if(stockQty<qty){ showToast(`Estoque insuficiente! Disponível: ${stockQty}`,'error'); return; } 
-        
-        showLoading(); 
-        try{ 
-            const protocol=generateProtocol(); 
-            await push(ref(db,'solicitacoes'),{ 
-                protocolo:protocol, 
-                productKey:pk, 
-                transformadorNome:product.name, 
-                quantidadeSolicitada:qty, 
-                solicitante:name, 
-                usuarioSolicitante:emailReq, 
-                numeroObra:numeroObra || '', 
-                nomeObra:nomeObra || '', 
-                status:'PENDENTE', 
-                dataSolicitacao:serverTimestamp(), 
-                solicitadoPor:currentUser?.email 
-            }); 
-            showToast(`Solicitação ${protocol} criada!`); 
-            closeNewRequestModal(); 
-            e.target.reset(); 
-            document.getElementById('requestProductKey').value = '';
-            document.getElementById('requestProductSearch').value = '';
-            document.getElementById('stockWarning').innerHTML='';
-            if(currentUser && currentUser.email) document.getElementById('requesterEmail').value = currentUser.email;
-            localRequestsCache = null;
-            loadRequests(); 
-        }catch(e){ showToast('Erro ao criar!','error'); }finally{ hideLoading(); } 
-    });
-    
-    function generateProtocol() { const d = new Date(); return `SOL-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${Math.floor(Math.random()*10000).toString().padStart(4,'0')}`; }
-    
-    function getStatusBadge(status) {
-        if(status === 'PENDENTE') return '<span class="badge badge-warning"><i class="fas fa-clock"></i> Pendente</span>';
-        if(status === 'CONCLUIDO') return '<span class="badge badge-success"><i class="fas fa-check-circle"></i> Concluída</span>';
-        if(status === 'CANCELADO') return '<span class="badge badge-canceled"><i class="fas fa-ban"></i> Cancelado</span>';
-        return '<span class="badge">'+status+'</span>';
-    }
-    
-    function renderPagination() {
-        const totalPages = Math.ceil(allRequests.length / itemsPerPage);
-        const container = document.getElementById('paginationContainer');
-        if (!container || totalPages <= 1) { if(container) container.innerHTML = ''; return; }
-        
-        let html = `<button class="pagination-btn" onclick="changePage(1)" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-angle-double-left"></i></button>`;
-        html += `<button class="pagination-btn" onclick="changePage(${currentPage-1})" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-angle-left"></i></button>`;
-        
-        let startPage = Math.max(1, currentPage - 2);
-        let endPage = Math.min(totalPages, startPage + 4);
-        if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
-        
-        for (let i = startPage; i <= endPage; i++) {
-            html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
-        }
-        
-        html += `<button class="pagination-btn" onclick="changePage(${currentPage+1})" ${currentPage === totalPages ? 'disabled' : ''}><i class="fas fa-angle-right"></i></button>`;
-        html += `<button class="pagination-btn" onclick="changePage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}><i class="fas fa-angle-double-right"></i></button>`;
-        html += `<span class="pagination-info">Página ${currentPage} de ${totalPages} (${allRequests.length} itens)</span>`;
-        container.innerHTML = html;
-    }
-    
-    function renderRequestsPage() {
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        const pageRequests = allRequests.slice(startIndex, endIndex);
-        
-        const tbody = document.getElementById('requestsList');
-        if (!pageRequests.length) { tbody.innerHTML='<tr><td colspan="11">Nenhuma solicitação encontrada</td></tr>'; return; }
-        
-        let html = '';
-        pageRequests.forEach(r => {
-            const pend = r.status === 'PENDENTE';
-            const dataConclusaoFormatada = r.dataConclusao ? formatDateTime(r.dataConclusao) : '-';
-            const nomeObraExibido = r.nomeObra ? escapeHtml(r.nomeObra) : '-';
-            
-            html += `<tr>
-                        <td><strong>${escapeHtml(r.protocolo)}</strong></td>
-                        <td>${escapeHtml(r.transformadorNome)}</td>
-                        <td>${r.quantidadeSolicitada}</td>
-                        <td><span class="solicitante-highlight">${escapeHtml(r.solicitante||'-')}</span></td>
-                        <td><span class="email-cell">${escapeHtml(r.usuarioSolicitante||'-')}</span></td>
-                        <td>${r.numeroObra ? escapeHtml(r.numeroObra) : '-'}</td>
-                        <td><span class="nome-obra"><i class="fas fa-building"></i> ${nomeObraExibido}</span></td>
-                        <td class="datetime-cell">${formatDateTime(r.dataSolicitacao)}</td>
-                        <td class="datetime-cell">${dataConclusaoFormatada}</td>
-                        <td>${getStatusBadge(r.status)}</td>
-                        <td>${pend?`<button class="btn btn-success" onclick="completeRequest('${r.firebaseId}')" style="padding:6px 12px;margin-right:4px;"><i class="fas fa-check"></i> Concluir</button><button class="btn btn-danger" onclick="cancelRequest('${r.firebaseId}')" style="padding:6px 12px;"><i class="fas fa-times"></i> Cancelar</button>`: r.status==='CANCELADO'?'<i class="fas fa-ban" style="color:#94a3b8;"></i> Cancelada':'<i class="fas fa-check-circle" style="color:var(--success);"></i> Finalizada'}</td>
-                    </tr>`;
-        });
-        tbody.innerHTML = html;
-    }
-    
-    const debouncedLoadRequests = debounce(() => loadRequests(), 300);
-    document.getElementById('dataInicial')?.addEventListener('change', debouncedLoadRequests);
-    document.getElementById('dataFinal')?.addEventListener('change', debouncedLoadRequests);
-    document.getElementById('limparDatasBtn')?.addEventListener('click', () => {
-        document.getElementById('dataInicial').value = '';
-        document.getElementById('dataFinal').value = '';
-        loadRequests();
-    });
-    
-    window.exportToPDF = () => {
-        if (!allRequests.length) {
-            showToast('Nenhuma solicitação para exportar!', 'error');
-            return;
-        }
-
-        showLoading();
-
-        setTimeout(() => {
-            try {
-                const today = new Date();
-                const dataFormatada = today.toLocaleDateString('pt-BR');
-                const horaFormatada = today.toLocaleTimeString('pt-BR');
-
-                const totalSolicitacoes = allRequests.length;
-                const totalConcluidas = allRequests.filter(r => r.status?.toUpperCase().includes('CONCLU')).length;
-                const totalPendentes = allRequests.filter(r => r.status?.toUpperCase().includes('PENDEN')).length;
-                const totalCanceladas = allRequests.filter(r => r.status?.toUpperCase().includes('CANCEL')).length;
-
-                const pdfContent = document.createElement('div');
-                pdfContent.style.padding = '10px';
-                pdfContent.style.backgroundColor = '#ffffff';
-                pdfContent.style.color = '#000000';
-                pdfContent.style.fontFamily = 'Arial, sans-serif';
-
-                let htmlContent = `
-                    <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000;">
-                        <h1 style="margin: 0; font-size: 22px; color: #000;">StockMaster</h1>
-                        <h2 style="margin: 5px 0; font-size: 16px; color: #333;">Relatório de Solicitações</h2>
-                        <p style="margin: 5px 0; font-size: 10px; color: #555;"> Gerado em: ${dataFormatada} às ${horaFormatada} </p>
-                        <p style="margin: 5px 0; font-size: 10px; color: #555;"> Usuário: ${currentUser?.nome} (${currentUser?.email}) </p>
-                    </div>
-                    
-                    <div style="display: flex; justify-content: space-around; margin-bottom: 20px;">
-                        <div style="text-align: center; border: 1px solid #000; padding: 10px; border-radius: 4px; width: 20%;">
-                            <div style="font-size: 16px; font-weight: bold;">${totalSolicitacoes}</div>
-                            <div style="font-size: 10px;">Total</div>
-                        </div>
-                        <div style="text-align: center; border: 1px solid #000; padding: 10px; border-radius: 4px; width: 20%;">
-                            <div style="font-size: 16px; font-weight: bold; color: green;">${totalConcluidas}</div>
-                            <div style="font-size: 10px;">Concluídas</div>
-                        </div>
-                        <div style="text-align: center; border: 1px solid #000; padding: 10px; border-radius: 4px; width: 20%;">
-                            <div style="font-size: 16px; font-weight: bold; color: orange;">${totalPendentes}</div>
-                            <div style="font-size: 10px;">Pendentes</div>
-                        </div>
-                        <div style="text-align: center; border: 1px solid #000; padding: 10px; border-radius: 4px; width: 20%;">
-                            <div style="font-size: 16px; font-weight: bold; color: red;">${totalCanceladas}</div>
-                            <div style="font-size: 10px;">Canceladas</div>
-                        </div>
-                    </div>
-                    
-                    <table style="width: 100%; border-collapse: collapse; font-size: 8pt; table-layout: fixed;">
-                        <thead>
-                            <tr style="background-color: #eeeeee; color: #000;">
-                                <th style="border: 1px solid #000; padding: 5px; width: 15%; text-align: left;">Protocolo</th>
-                                <th style="border: 1px solid #000; padding: 5px; width: 20%; text-align: left;">Produto</th>
-                                <th style="border: 1px solid #000; padding: 5px; width: 5%; text-align: center;">Qtd</th>
-                                <th style="border: 1px solid #000; padding: 5px; width: 10%; text-align: left;">Solicitante</th>
-                                <th style="border: 1px solid #000; padding: 5px; width: 15%; text-align: left;">Email</th>
-                                <th style="border: 1px solid #000; padding: 5px; width: 8%; text-align: left;">Nº Obra</th>
-                                <th style="border: 1px solid #000; padding: 5px; width: 12%; text-align: left;">Data/Hora</th>
-                                <th style="border: 1px solid #000; padding: 5px; width: 10%; text-align: left;">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-
-                allRequests.forEach(r => {
-                    let statusExibicao = r.status || '-';
-                    htmlContent += `
-                        <tr>
-                            <td style="border: 1px solid #000; padding: 5px; word-wrap: break-word;">${r.protocolo || '-'}</td>
-                            <td style="border: 1px solid #000; padding: 5px; word-wrap: break-word;">${r.transformadorNome || '-'}</td>
-                            <td style="border: 1px solid #000; padding: 5px; text-align: center;">${r.quantidadeSolicitada || '0'}</td>
-                            <td style="border: 1px solid #000; padding: 5px;">${r.solicitante || '-'}</td>
-                            <td style="border: 1px solid #000; padding: 5px; word-break: break-all;">${r.usuarioSolicitante || '-'}</td>
-                            <td style="border: 1px solid #000; padding: 5px;">${r.numeroObra || '-'}</td>
-                            <td style="border: 1px solid #000; padding: 5px;">${formatDateTime(r.dataSolicitacao)}</td>
-                            <td style="border: 1px solid #000; padding: 5px; font-weight: bold;">${statusExibicao}</td>
-                        </tr>
-                    `;
-                });
-
-                htmlContent += `
-                        </tbody>
-                    </table>
-                    <div style="margin-top: 20px; text-align: center; font-size: 9pt;">
-                        <p>StockMaster - Relatório Oficial</p>
-                    </div>
-                `;
-
-                pdfContent.innerHTML = htmlContent;
-
-                const opt = {
-                    margin: [10, 5, 10, 5],
-                    filename: `relatorio_${currentUser?.email}_${today.getFullYear()}.pdf`,
-                    image: { type: 'jpeg', quality: 1.0 },
-                    html2canvas: { scale: 3, useCORS: true, letterRendering: true },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-                };
-
-                html2pdf().set(opt).from(pdfContent).save();
-                showToast('PDF gerado com sucesso!');
-
-            } catch (error) {
-                console.error(error);
-                showToast('Erro ao gerar PDF!', 'error');
-            } finally {
-                hideLoading();
-            }
-        }, 150);
-    };
-    
-    const debouncedRequestSearch = debounce(() => loadRequests(), 300);
-    document.getElementById('requestSearch')?.addEventListener('input', debouncedRequestSearch); 
-    document.getElementById('requestStatusFilter')?.addEventListener('change', () => loadRequests());
-    
-    window.changePage = (page) => {
-        currentPage = page;
-        renderRequestsPage();
-        renderPagination();
-    };
-    
-    function closeLoginModal() { document.getElementById('loginModal').classList.remove('show'); }
-    window.closeLoginModal = closeLoginModal;
-    
-    // ==================== EVENTO DE LOGIN ====================
-    document.getElementById('loginForm').addEventListener('submit', async(e)=>{ 
-        e.preventDefault(); 
-        showLoading(); 
-        try { 
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            
-            const success = await loginWithDatabase(email, password);
-            
-            if (success) { 
-                closeLoginModal(); 
-                showToast(`Bem-vindo, ${currentUser.nome}!`); 
-                
+        function checkAuthState() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
                 document.getElementById('userName').textContent = currentUser.nome;
                 document.getElementById('userEmail').textContent = currentUser.email;
                 
@@ -1752,22 +957,789 @@
                 }, 100);
                 
                 navigateTo('stock');
-            } else { 
-                showToast('Email ou senha inválidos!', 'error'); 
+                return true;
+            }
+            document.getElementById('loginModal').classList.add('show');
+            return false;
+        }
+        
+        function filterAndSortStock() {
+            const searchTerm = document.getElementById('stockSearchInput')?.value.toLowerCase() || '';
+            const categoryFilter = document.getElementById('stockCategoryFilter')?.value || 'all';
+            const sortType = document.getElementById('stockSortSelect')?.value || 'name_asc';
+            
+            let filtered = [...allProducts];
+            
+            if (searchTerm) {
+                filtered = filtered.filter(p => 
+                    p.name.toLowerCase().includes(searchTerm) || 
+                    p.key.toLowerCase().includes(searchTerm) ||
+                    p.category.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (categoryFilter !== 'all') {
+                filtered = filtered.filter(p => p.category === categoryFilter);
+            }
+            
+            filtered = filtered.map(p => ({
+                ...p,
+                quantity: stockData[p.key]?.quantidade || 0,
+                usuario: stockData[p.key]?.usuario || ''
+            })).filter(p => p.usuario === currentUser?.email || !stockData[p.key]);
+            
+            switch(sortType) {
+                case 'name_asc': filtered.sort((a, b) => a.name.localeCompare(b.name)); break;
+                case 'name_desc': filtered.sort((a, b) => b.name.localeCompare(a.name)); break;
+                case 'qty_desc': filtered.sort((a, b) => b.quantity - a.quantity); break;
+                case 'qty_asc': filtered.sort((a, b) => a.quantity - b.quantity); break;
+                case 'status': filtered.sort((a, b) => { const getOrder = (q, min) => q === 0 ? 3 : (q < min ? 2 : 1); return getOrder(b.quantity, b.min) - getOrder(a.quantity, a.min); }); break;
+                case 'code_asc': filtered.sort((a, b) => a.key.localeCompare(b.key)); break;
+                default: filtered.sort((a, b) => a.name.localeCompare(b.name));
+            }
+            
+            filteredStockItems = filtered;
+            
+            const total = filtered.length;
+            const normal = filtered.filter(p => p.quantity > 0 && p.quantity >= p.min).length;
+            const low = filtered.filter(p => p.quantity > 0 && p.quantity < p.min).length;
+            const empty = filtered.filter(p => p.quantity === 0).length;
+            
+            document.getElementById('stockTotalCount').innerText = allProducts.length;
+            document.getElementById('stockNormalCount').innerText = normal;
+            document.getElementById('stockLowCount').innerText = low;
+            document.getElementById('stockEmptyCount').innerText = empty;
+            document.getElementById('stockDisplayCount').innerText = total;
+            
+            renderStockTable(filtered);
+        }
+        
+        function renderStockTable(items) {
+            const tbody = document.getElementById('stockList');
+            if (!items.length) { tbody.innerHTML='<tr><td colspan="7">Nenhum produto encontrado</td></tr>'; return; }
+            
+            let html = '';
+            items.forEach(p => {
+                const q = p.quantity;
+                const min = p.min;
+                const status = q === 0 ? 'danger' : (q < min ? 'warning' : 'success');
+                const statusText = q === 0 ? 'Esgotado' : (q < min ? 'Baixo' : 'Normal');
+                const statusClass = status === 'danger' ? 'badge-danger' : (status === 'warning' ? 'badge-warning' : 'badge-success');
+                
+                html += `<tr>
+                            <td><strong>${escapeHtml(p.name)}</strong><div class="product-category-badge">${p.category}</div></td>
+                            <td><code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 6px;">${p.key}</code></td>
+                            <td><span style="color: var(--primary);">${p.category}</span></td>
+                            <td><strong style="font-size: 1.1rem;">${q}</strong></td>
+                            <td>${min}</td>
+                            <td><span class="badge ${statusClass}">${statusText}</span></td>
+                            <td><button class="btn btn-outline" onclick="editStock('${p.key}','${escapeHtml(p.name)}',${q})" style="padding:6px 12px;"><i class="fas fa-edit"></i></button><button class="btn btn-danger" onclick="deleteStock('${p.key}','${escapeHtml(p.name)}')" style="padding:6px 12px; margin-left: 5px;"><i class="fas fa-trash"></i></button></td>
+                           </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+        
+        function loadStock() { 
+            if(!currentUser) return;
+            
+            const now = Date.now();
+            if (localStockCache && (now - lastStockSync) < SYNC_INTERVAL) {
+                stockData = localStockCache;
+                filterAndSortStock();
+                return;
+            }
+            
+            const userStockRef = query(ref(db, 'estoque'), orderByChild('usuario'), equalTo(currentUser.email));
+            onValue(userStockRef, (snap) => { 
+                stockData = snap.val() || {};
+                localStockCache = {...stockData};
+                lastStockSync = now;
+                filterAndSortStock();
+            }, { onlyOnce: true });
+        }
+        
+        window.editStock = async function(id, name, curr){ 
+            if(!currentUser) { showToast('Faça login primeiro!', 'error'); return; }
+            const n = prompt(`Editar ${name}\nQuantidade atual: ${curr}\nNova:`,curr); 
+            if(n!==null && !isNaN(parseInt(n)) && parseInt(n)>=0){ 
+                showLoading(); 
+                try{ 
+                    await set(ref(db,`estoque/${id}`),{ 
+                        nome:name, 
+                        quantidade:parseInt(n), 
+                        usuario: currentUser.email,
+                        cadastradoPor:currentUser?.email, 
+                        dataCadastro:serverTimestamp() 
+                    }); 
+                    showToast('Estoque atualizado!');
+                    localStockCache = null;
+                    loadStock();
+                }catch(e){ showToast('Erro!','error'); }finally{ hideLoading(); } 
             } 
-        } catch(e) { 
-            console.error(e);
-            showToast('Erro ao fazer login!', 'error'); 
-        } finally { 
-            hideLoading(); 
-        } 
-    });
-    
-    document.getElementById('logoutBtn').addEventListener('click', () => { 
-        logoutDatabase(); 
-    });
-    
-    checkAuthState();
-</script>
+        };
+        
+        window.deleteStock = async function(id, name){ 
+            if(!currentUser) { showToast('Faça login primeiro!', 'error'); return; }
+            
+            const stockItem = await get(ref(db, `estoque/${id}`));
+            if(stockItem.exists() && stockItem.val().usuario !== currentUser.email) {
+                showToast('Você não pode deletar itens de outro usuário!', 'error');
+                return;
+            }
+            
+            if(confirm(`Remover ${name}?`)){ 
+                showLoading(); 
+                try{ 
+                    await set(ref(db,`estoque/${id}`),null); 
+                    showToast('Removido!');
+                    localStockCache = null;
+                    loadStock();
+                }catch(e){ showToast('Erro!','error'); }finally{ hideLoading(); } 
+            } 
+        };
+        
+        document.getElementById('stockForm').addEventListener('submit', async(e)=>{ 
+            e.preventDefault(); 
+            if(!currentUser) { showToast('Faça login primeiro!', 'error'); return; }
+            const prodKey = document.getElementById('stockProductKey').value;
+            const qty = parseInt(document.getElementById('stockQuantity').value);
+            const product = allProducts.find(p => p.key === prodKey);
+            
+            if(!prodKey || !product || !qty || qty<1){ showToast('Selecione um produto e quantidade válida!','error'); return; } 
+            showLoading(); 
+            try{ 
+                await runTransaction(ref(db,`estoque/${prodKey}`), (curr)=>{ 
+                    if(curr){ 
+                        if(curr.usuario && curr.usuario !== currentUser.email) {
+                            throw new Error('Este item pertence a outro usuário');
+                        }
+                        curr.quantidade += qty; 
+                        curr.usuario = currentUser.email;
+                        return curr; 
+                    } 
+                    return { 
+                        nome:product.name, 
+                        quantidade:qty, 
+                        usuario: currentUser.email,
+                        cadastradoPor:currentUser?.email, 
+                        dataCadastro:serverTimestamp() 
+                    }; 
+                }); 
+                showToast(`+${qty} ${product.name}`); 
+                e.target.reset();
+                document.getElementById('stockProductKey').value = '';
+                document.getElementById('stockProductSearch').value = '';
+                localStockCache = null;
+                loadStock();
+            }catch(e){ 
+                showToast(e.message || 'Erro!','error'); 
+            }finally{ hideLoading(); } 
+        });
+        
+        function filterByDateRange(requests) {
+            const dataInicial = document.getElementById('dataInicial')?.value;
+            const dataFinal = document.getElementById('dataFinal')?.value;
+            if (!dataInicial && !dataFinal) return requests;
+            
+            return requests.filter(req => {
+                const dataReq = req.dataSolicitacao ? new Date(req.dataSolicitacao) : null;
+                if (!dataReq) return false;
+                if (dataInicial && dataReq < new Date(dataInicial)) return false;
+                if (dataFinal) {
+                    const endDate = new Date(dataFinal);
+                    endDate.setHours(23, 59, 59);
+                    if (dataReq > endDate) return false;
+                }
+                return true;
+            });
+        }
+        
+        function updateStatistics(filteredRequests) {
+            const obrasComNumero = filteredRequests.filter(r => r.numeroObra && r.numeroObra.trim() !== '');
+            const totalObras = obrasComNumero.length;
+            const totalConcluidas = filteredRequests.filter(r => r.status === 'CONCLUIDO').length;
+            const totalPendentes = filteredRequests.filter(r => r.status === 'PENDENTE').length;
+            
+            document.getElementById('totalObrasCount').innerText = totalObras;
+            document.getElementById('totalConcluidasCount').innerText = totalConcluidas;
+            document.getElementById('totalPendentesCount').innerText = totalPendentes;
+        }
+        
+        function loadRequests() { 
+            if(!currentUser) return;
+            
+            const now = Date.now();
+            if (localRequestsCache && (now - lastRequestsSync) < SYNC_INTERVAL) {
+                processRequests(localRequestsCache);
+                return;
+            }
+            
+            const userRequestsRef = query(ref(db, 'solicitacoes'), orderByChild('usuarioSolicitante'), equalTo(currentUser.email));
+            onValue(userRequestsRef, (snap)=>{ 
+                const reqs=snap.val()||{}; 
+                localRequestsCache = reqs;
+                lastRequestsSync = now;
+                processRequests(reqs);
+            }, { onlyOnce: true });
+        }
+        
+        function processRequests(reqs) {
+            const search=document.getElementById('requestSearch')?.value.toLowerCase()||''; 
+            const filter=document.getElementById('requestStatusFilter')?.value||'all'; 
+            let filtered=[]; 
+            for(const [id,r] of Object.entries(reqs)){ 
+                if(r && r.protocolo){ 
+                    const searchMatch = !search || 
+                        r.protocolo.toLowerCase().includes(search) || 
+                        (r.solicitante||'').toLowerCase().includes(search) || 
+                        (r.usuarioSolicitante||'').toLowerCase().includes(search) ||
+                        (r.numeroObra||'').toLowerCase().includes(search) ||
+                        (r.nomeObra||'').toLowerCase().includes(search);
+                    
+                    if(!searchMatch) continue;
+                    if(filter!=='all' && r.status!==filter) continue; 
+                    filtered.push({...r,firebaseId:id}); 
+                } 
+            } 
+            filtered.sort((a,b)=>(b.dataSolicitacao||0)-(a.dataSolicitacao||0));
+            filtered = filterByDateRange(filtered);
+            allRequests = filtered;
+            updateStatistics(allRequests);
+            currentPage = 1;
+            renderRequestsPage();
+            renderPagination();
+        }
+        
+        window.completeRequest = async function(id){ 
+            if(!currentUser) { showToast('Faça login primeiro!', 'error'); return; }
+            
+            const reqSnap=await get(ref(db,`solicitacoes/${id}`));
+            const req=reqSnap.val();
+            if(!req) throw new Error('Não encontrada');
+            if(req.usuarioSolicitante !== currentUser.email) {
+                showToast('Você não pode concluir solicitações de outro usuário!', 'error');
+                return;
+            }
+            
+            if(!confirm('Confirmar retirada? Esta ação baixará o estoque.')) return; 
+            showLoading(); 
+            try{ 
+                if(req.status!=='PENDENTE'){ showToast('Solicitação não pode ser concluída!','error'); return; }
+                
+                const stockItem = await get(ref(db, `estoque/${req.productKey}`));
+                if(stockItem.exists() && stockItem.val().usuario !== currentUser.email) {
+                    showToast('Este produto não pertence ao seu estoque!', 'error');
+                    return;
+                }
+                
+                await runTransaction(ref(db,`estoque/${req.productKey}`), (curr)=>{ 
+                    if(!curr || curr.quantidade<req.quantidadeSolicitada) throw new Error('Estoque insuficiente'); 
+                    if(curr.usuario && curr.usuario !== currentUser.email) throw new Error('Item não pertence ao seu estoque');
+                    curr.quantidade-=req.quantidadeSolicitada; 
+                    return curr; 
+                }); 
+                await update(ref(db),{ 
+                    [`solicitacoes/${id}/status`]:'CONCLUIDO', 
+                    [`solicitacoes/${id}/dataConclusao`]:serverTimestamp(), 
+                    [`solicitacoes/${id}/concluidoPor`]:currentUser?.email 
+                }); 
+                showToast('Solicitação concluída!'); 
+                localStockCache = null;
+                localRequestsCache = null;
+                loadStock(); loadRequests(); 
+            }catch(e){ showToast(e.message||'Erro ao concluir','error'); }finally{ hideLoading(); } 
+        };
+        
+        window.cancelRequest = async function(id){ 
+            if(!currentUser) { showToast('Faça login primeiro!', 'error'); return; }
+            
+            const reqSnap=await get(ref(db,`solicitacoes/${id}`));
+            const req=reqSnap.val();
+            if(req && req.usuarioSolicitante !== currentUser.email) {
+                showToast('Você não pode cancelar solicitações de outro usuário!', 'error');
+                return;
+            }
+            
+            if(!confirm('Cancelar solicitação?')) return; 
+            showLoading(); 
+            try{ 
+                await update(ref(db),{ [`solicitacoes/${id}/status`]:'CANCELADO' }); 
+                showToast('Solicitação cancelada!');
+                localRequestsCache = null;
+                loadRequests(); 
+            }catch(e){ showToast('Erro!','error'); }finally{ hideLoading(); } 
+        };
+        
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        
+        function renderProductSelector(containerId, searchInputId, hiddenInputId, optionsContainerId, onSelectCallback) {
+            const searchInput = document.getElementById(searchInputId);
+            const hiddenInput = document.getElementById(hiddenInputId);
+            const optionsContainer = document.getElementById(optionsContainerId);
+            
+            if (!searchInput || !optionsContainer) return;
+            
+            function filterProducts(searchTerm) {
+                const term = searchTerm.toLowerCase();
+                return allProducts.filter(p => 
+                    p.name.toLowerCase().includes(term) || 
+                    p.key.toLowerCase().includes(term) ||
+                    p.category.toLowerCase().includes(term)
+                );
+            }
+            
+            function renderOptions(filteredProducts) {
+                if (!optionsContainer) return;
+                let currentCategory = '';
+                let html = '';
+                
+                filteredProducts.forEach(product => {
+                    if (product.category !== currentCategory) {
+                        currentCategory = product.category;
+                        html += `<div class="product-category">${currentCategory}</div>`;
+                    }
+                    html += `
+                        <div class="product-option" data-key="${product.key}" data-name="${product.name.replace(/"/g, '&quot;')}">
+                            <div style="font-weight: 500;">${product.name}</div>
+                            <div style="font-size: 0.7rem; color: #64748b;">Código: ${product.key} | Estoque Mín: ${product.min}</div>
+                        </div>
+                    `;
+                });
+                
+                if (filteredProducts.length === 0) {
+                    html = '<div class="product-option" style="color: #64748b; text-align: center;">Nenhum produto encontrado</div>';
+                }
+                
+                optionsContainer.innerHTML = html;
+                
+                document.querySelectorAll(`#${optionsContainerId} .product-option`).forEach(opt => {
+                    opt.addEventListener('click', () => {
+                        const key = opt.dataset.key;
+                        const name = opt.dataset.name;
+                        searchInput.value = name;
+                        hiddenInput.value = key;
+                        document.querySelectorAll(`#${optionsContainerId} .product-option`).forEach(o => o.classList.remove('selected'));
+                        opt.classList.add('selected');
+                        if (onSelectCallback) onSelectCallback(key, name);
+                    });
+                });
+            }
+            
+            const debouncedRender = debounce(() => {
+                const filtered = filterProducts(searchInput.value);
+                renderOptions(filtered);
+                optionsContainer.style.display = 'block';
+            }, 300);
+            
+            searchInput.addEventListener('input', debouncedRender);
+            renderOptions(allProducts);
+            
+            searchInput.addEventListener('click', () => {
+                const filtered = filterProducts(searchInput.value);
+                renderOptions(filtered);
+                optionsContainer.style.display = 'block';
+            });
+            
+            optionsContainer.style.display = 'block';
+        }
+        
+        function showToast(message, type = 'success') { 
+            const container = document.getElementById('toastContainer'); 
+            const toast = document.createElement('div'); 
+            toast.className = `toast toast-${type}`; 
+            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i><span>${message}</span>`; 
+            container.appendChild(toast); 
+            setTimeout(() => toast.remove(), 3000); 
+        }
+        
+        function showLoading() { document.getElementById('loadingOverlay').classList.add('show'); } 
+        function hideLoading() { document.getElementById('loadingOverlay').classList.remove('show'); }
+        
+        function formatDateTime(timestamp) { 
+            return timestamp ? new Date(timestamp).toLocaleString('pt-BR') : '-'; 
+        }
+        
+        function escapeHtml(str) { 
+            if(!str) return ''; 
+            return str.replace(/[&<>]/g, function(m) { 
+                if(m === '&') return '&amp;'; 
+                if(m === '<') return '&lt;'; 
+                if(m === '>') return '&gt;'; 
+                return m; 
+            }); 
+        }
+        
+        function getStatusBadge(status) {
+            if(status === 'PENDENTE') return '<span class="badge badge-warning"><i class="fas fa-clock"></i> Pendente</span>';
+            if(status === 'CONCLUIDO') return '<span class="badge badge-success"><i class="fas fa-check-circle"></i> Concluída</span>';
+            if(status === 'CANCELADO') return '<span class="badge badge-canceled"><i class="fas fa-ban"></i> Cancelado</span>';
+            return '<span class="badge">'+status+'</span>';
+        }
+        
+        function renderPagination() {
+            const totalPages = Math.ceil(allRequests.length / itemsPerPage);
+            const container = document.getElementById('paginationContainer');
+            if (!container || totalPages <= 1) { if(container) container.innerHTML = ''; return; }
+            
+            let html = `<button class="pagination-btn" onclick="changePage(1)" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-angle-double-left"></i></button>`;
+            html += `<button class="pagination-btn" onclick="changePage(${currentPage-1})" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-angle-left"></i></button>`;
+            
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+            if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+            
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+            }
+            
+            html += `<button class="pagination-btn" onclick="changePage(${currentPage+1})" ${currentPage === totalPages ? 'disabled' : ''}><i class="fas fa-angle-right"></i></button>`;
+            html += `<button class="pagination-btn" onclick="changePage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}><i class="fas fa-angle-double-right"></i></button>`;
+            html += `<span class="pagination-info">Página ${currentPage} de ${totalPages} (${allRequests.length} itens)</span>`;
+            container.innerHTML = html;
+        }
+        
+        function renderRequestsPage() {
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageRequests = allRequests.slice(startIndex, endIndex);
+            
+            const tbody = document.getElementById('requestsList');
+            if (!pageRequests.length) { tbody.innerHTML='<tr><td colspan="11">Nenhuma solicitação encontrada</td></tr>'; return; }
+            
+            let html = '';
+            pageRequests.forEach(r => {
+                const pend = r.status === 'PENDENTE';
+                const dataConclusaoFormatada = r.dataConclusao ? formatDateTime(r.dataConclusao) : '-';
+                const nomeObraExibido = r.nomeObra ? escapeHtml(r.nomeObra) : '-';
+                
+                html += `<tr>
+                            <td><strong>${escapeHtml(r.protocolo)}</strong></td>
+                            <td>${escapeHtml(r.transformadorNome)}</td>
+                            <td>${r.quantidadeSolicitada}</td>
+                            <td><span class="solicitante-highlight">${escapeHtml(r.solicitante||'-')}</span></td>
+                            <td class="email-cell">${escapeHtml(r.usuarioSolicitante||'-')}</td>
+                            <td>${r.numeroObra ? escapeHtml(r.numeroObra) : '-'}</td>
+                            <td><span class="nome-obra"><i class="fas fa-building"></i> ${nomeObraExibido}</span></td>
+                            <td class="datetime-cell">${formatDateTime(r.dataSolicitacao)}</td>
+                            <td class="datetime-cell">${dataConclusaoFormatada}</td>
+                            <td>${getStatusBadge(r.status)}</td>
+                            <td>${pend?`<button class="btn btn-success" onclick="completeRequest('${r.firebaseId}')" style="padding:6px 12px;margin-right:4px;"><i class="fas fa-check"></i> Concluir</button><button class="btn btn-danger" onclick="cancelRequest('${r.firebaseId}')" style="padding:6px 12px;"><i class="fas fa-times"></i> Cancelar</button>`: r.status==='CANCELADO'?'<i class="fas fa-ban" style="color:#94a3b8;"></i> Cancelada':'<i class="fas fa-check-circle" style="color:var(--success);"></i> Finalizada'}</td>
+                        </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+        
+        document.getElementById('newRequestForm').addEventListener('submit', async(e)=>{ 
+            e.preventDefault(); 
+            if(!currentUser) { showToast('Faça login primeiro!', 'error'); return; }
+            const pk = document.getElementById('requestProductKey').value;
+            const qty = parseInt(document.getElementById('requestQuantity').value);
+            const name = document.getElementById('requesterName').value.trim();
+            const emailReq = currentUser?.email;
+            const numeroObra = document.getElementById('numeroObra').value.trim();
+            const nomeObra = document.getElementById('nomeObra').value.trim();
+            const product = allProducts.find(p => p.key === pk);
+            
+            if(!pk || !product || !qty || !name){ showToast('Preencha produto, quantidade e solicitante!','error'); return; } 
+            if(!emailReq){ showToast('Usuário não autenticado!','error'); return; }
+            
+            const stockItem = stockData[pk];
+            const stockQty = stockItem?.quantidade || 0;
+            const pertenceAoUsuario = !stockItem || stockItem.usuario === currentUser?.email;
+            
+            if(!pertenceAoUsuario && stockItem){ 
+                showToast('Este produto não pertence ao seu estoque!', 'error'); 
+                return; 
+            }
+            if(stockQty<qty){ showToast(`Estoque insuficiente! Disponível: ${stockQty}`,'error'); return; } 
+            
+            showLoading(); 
+            try{ 
+                const protocol = `SOL-${new Date().getFullYear()}${String(new Date().getMonth()+1).padStart(2,'0')}${String(new Date().getDate()).padStart(2,'0')}-${Math.floor(Math.random()*10000).toString().padStart(4,'0')}`;
+                
+                // SALVAR CIDADE E ESTADO NO BANCO (SEM EXIBIR NO FRONTEND)
+                await push(ref(db,'solicitacoes'),{ 
+                    protocolo:protocol, 
+                    productKey:pk, 
+                    transformadorNome:product.name, 
+                    quantidadeSolicitada:qty, 
+                    solicitante:name, 
+                    usuarioSolicitante:emailReq, 
+                    numeroObra:numeroObra || '', 
+                    nomeObra:nomeObra || '', 
+                    status:'PENDENTE', 
+                    dataSolicitacao:serverTimestamp(), 
+                    solicitadoPor:currentUser?.email,
+                    cidadeSolicitante: currentUser?.cidade || '',
+                    estadoSolicitante: currentUser?.estado || ''
+                }); 
+                showToast(`Solicitação ${protocol} criada!`); 
+                closeNewRequestModal(); 
+                e.target.reset(); 
+                document.getElementById('requestProductKey').value = '';
+                document.getElementById('requestProductSearch').value = '';
+                document.getElementById('stockWarning').innerHTML='';
+                if(currentUser && currentUser.email) document.getElementById('requesterEmail').value = currentUser.email;
+                localRequestsCache = null;
+                loadRequests(); 
+            }catch(e){ showToast('Erro ao criar!','error'); }finally{ hideLoading(); } 
+        });
+        
+        window.exportToPDF = () => {
+            if (!allRequests.length) {
+                showToast('Nenhuma solicitação para exportar!', 'error');
+                return;
+            }
+        
+            showLoading();
+        
+            setTimeout(() => {
+                try {
+                    const today = new Date();
+                    const dataFormatada = today.toLocaleDateString('pt-BR');
+                    const horaFormatada = today.toLocaleTimeString('pt-BR');
+        
+                    const totalSolicitacoes = allRequests.length;
+                    const totalConcluidas = allRequests.filter(r => r.status?.toUpperCase().includes('CONCLU')).length;
+                    const totalPendentes = allRequests.filter(r => r.status?.toUpperCase().includes('PENDEN')).length;
+                    const totalCanceladas = allRequests.filter(r => r.status?.toUpperCase().includes('CANCEL')).length;
+        
+                    const pdfContent = document.createElement('div');
+                    pdfContent.style.padding = '10px';
+                    pdfContent.style.backgroundColor = '#ffffff';
+                    pdfContent.style.color = '#000000';
+                    pdfContent.style.fontFamily = 'Arial, sans-serif';
+        
+                    let htmlContent = `
+                        <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000;">
+                            <h1 style="margin: 0; font-size: 22px; color: #000;">StockMaster</h1>
+                            <h2 style="margin: 5px 0; font-size: 16px; color: #333;">Relatório de Solicitações</h2>
+                            <p style="margin: 5px 0; font-size: 10px; color: #555;"> Gerado em: ${dataFormatada} às ${horaFormatada} </p>
+                            <p style="margin: 5px 0; font-size: 10px; color: #555;"> Usuário: ${currentUser?.nome} (${currentUser?.email}) </p>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-around; margin-bottom: 20px;">
+                            <div style="text-align: center; border: 1px solid #000; padding: 10px; border-radius: 4px; width: 20%;">
+                                <div style="font-size: 16px; font-weight: bold;">${totalSolicitacoes}</div>
+                                <div style="font-size: 10px;">Total</div>
+                            </div>
+                            <div style="text-align: center; border: 1px solid #000; padding: 10px; border-radius: 4px; width: 20%;">
+                                <div style="font-size: 16px; font-weight: bold; color: green;">${totalConcluidas}</div>
+                                <div style="font-size: 10px;">Concluídas</div>
+                            </div>
+                            <div style="text-align: center; border: 1px solid #000; padding: 10px; border-radius: 4px; width: 20%;">
+                                <div style="font-size: 16px; font-weight: bold; color: orange;">${totalPendentes}</div>
+                                <div style="font-size: 10px;">Pendentes</div>
+                            </div>
+                            <div style="text-align: center; border: 1px solid #000; padding: 10px; border-radius: 4px; width: 20%;">
+                                <div style="font-size: 16px; font-weight: bold; color: red;">${totalCanceladas}</div>
+                                <div style="font-size: 10px;">Canceladas</div>
+                            </div>
+                        </div>
+                        
+                        <table style="width: 100%; border-collapse: collapse; font-size: 8pt; table-layout: fixed;">
+                            <thead>
+                                <tr style="background-color: #eeeeee; color: #000;">
+                                    <th style="border: 1px solid #000; padding: 5px; width: 12%; text-align: left;">Protocolo</th>
+                                    <th style="border: 1px solid #000; padding: 5px; width: 20%; text-align: left;">Produto</th>
+                                    <th style="border: 1px solid #000; padding: 5px; width: 5%; text-align: center;">Qtd</th>
+                                    <th style="border: 1px solid #000; padding: 5px; width: 12%; text-align: left;">Solicitante</th>
+                                    <th style="border: 1px solid #000; padding: 5px; width: 15%; text-align: left;">Email</th>
+                                    <th style="border: 1px solid #000; padding: 5px; width: 8%; text-align: left;">Nº Obra</th>
+                                    <th style="border: 1px solid #000; padding: 5px; width: 12%; text-align: left;">Nome Obra</th>
+                                    <th style="border: 1px solid #000; padding: 5px; width: 10%; text-align: left;">Data/Hora</th>
+                                    <th style="border: 1px solid #000; padding: 5px; width: 6%; text-align: left;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+        
+                    allRequests.forEach(r => {
+                        let statusExibicao = r.status || '-';
+                        htmlContent += `<tr>
+                                <td style="border: 1px solid #000; padding: 5px; word-wrap: break-word;">${r.protocolo || '-'}</td>
+                                <td style="border: 1px solid #000; padding: 5px; word-wrap: break-word;">${r.transformadorNome || '-'}</td>
+                                <td style="border: 1px solid #000; padding: 5px; text-align: center;">${r.quantidadeSolicitada || '0'}</td>
+                                <td style="border: 1px solid #000; padding: 5px;">${r.solicitante || '-'}</td>
+                                <td style="border: 1px solid #000; padding: 5px; word-break: break-all;">${r.usuarioSolicitante || '-'}</td>
+                                <td style="border: 1px solid #000; padding: 5px;">${r.numeroObra || '-'}</td>
+                                <td style="border: 1px solid #000; padding: 5px;">${r.nomeObra || '-'}</td>
+                                <td style="border: 1px solid #000; padding: 5px;">${formatDateTime(r.dataSolicitacao)}</td>
+                                <td style="border: 1px solid #000; padding: 5px; font-weight: bold;">${statusExibicao}</td>
+                              </tr>`;
+                    });
+        
+                    htmlContent += `
+                            </tbody>
+                        </table>
+                        <div style="margin-top: 20px; text-align: center; font-size: 9pt;">
+                            <p>StockMaster - Relatório Oficial</p>
+                        </div>
+                    `;
+        
+                    pdfContent.innerHTML = htmlContent;
+        
+                    const opt = {
+                        margin: [10, 5, 10, 5],
+                        filename: `relatorio_${currentUser?.email}_${today.getFullYear()}.pdf`,
+                        image: { type: 'jpeg', quality: 1.0 },
+                        html2canvas: { scale: 3, useCORS: true, letterRendering: true },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+                    };
+        
+                    html2pdf().set(opt).from(pdfContent).save();
+                    showToast('PDF gerado com sucesso!');
+        
+                } catch (error) {
+                    console.error(error);
+                    showToast('Erro ao gerar PDF!', 'error');
+                } finally {
+                    hideLoading();
+                }
+            }, 150);
+        };
+        
+        const debouncedFilterStock = debounce(() => filterAndSortStock(), 300);
+        document.getElementById('stockSearchInput')?.addEventListener('input', debouncedFilterStock);
+        document.getElementById('stockCategoryFilter')?.addEventListener('change', () => filterAndSortStock());
+        document.getElementById('stockSortSelect')?.addEventListener('change', () => filterAndSortStock());
+        document.getElementById('clearStockFilters')?.addEventListener('click', () => {
+            document.getElementById('stockSearchInput').value = '';
+            document.getElementById('stockCategoryFilter').value = 'all';
+            document.getElementById('stockSortSelect').value = 'name_asc';
+            filterAndSortStock();
+            showToast('Filtros limpos!');
+        });
+        
+        const menuToggle = document.getElementById('menuToggle'), sidebar = document.getElementById('sidebar'), overlay = document.getElementById('sidebarOverlay');
+        if(menuToggle) menuToggle.addEventListener('click', () => { sidebar.classList.toggle('mobile-open'); overlay.classList.toggle('mobile-open'); });
+        if(overlay) overlay.addEventListener('click', () => { sidebar.classList.remove('mobile-open'); overlay.classList.remove('mobile-open'); });
+        
+        function navigateTo(page) { 
+            document.querySelectorAll('.page-content').forEach(p => p.style.display = 'none'); 
+            document.getElementById(`${page}Page`).style.display = 'block'; 
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active')); 
+            document.querySelector(`.nav-item[data-page="${page}"]`).classList.add('active'); 
+            const titles = { stock: 'Estoque', requests: 'Solicitações' }; 
+            document.getElementById('pageTitle').textContent = titles[page]; 
+            if (page === 'stock') loadStock(); 
+            else if (page === 'requests') loadRequests(); 
+            if(sidebar) sidebar.classList.remove('mobile-open'); 
+            if(overlay) overlay.classList.remove('mobile-open'); 
+        }
+        
+        document.querySelectorAll('.nav-item').forEach(nav => nav.addEventListener('click', () => navigateTo(nav.dataset.page)));
+        
+        window.openNewRequestModal = () => {
+            if(!currentUser) { showToast('Faça login primeiro!', 'error'); return; }
+            if(currentUser && currentUser.email) document.getElementById('requesterEmail').value = currentUser.email;
+            document.getElementById('newRequestModal').classList.add('show');
+            document.getElementById('requestProductKey').value = '';
+            document.getElementById('requestProductSearch').value = '';
+            document.getElementById('stockWarning').innerHTML = '';
+        };
+        
+        window.closeNewRequestModal = () => document.getElementById('newRequestModal').classList.remove('show');
+        
+        const debouncedStockCheck = debounce(async () => {
+            const pk = document.getElementById('requestProductKey').value;
+            const qty = parseInt(document.getElementById('requestQuantity').value);
+            if(pk && qty){ 
+                const stockItem = stockData[pk];
+                const stockQty = stockItem?.quantidade || 0;
+                const pertenceAoUsuario = !stockItem || stockItem.usuario === currentUser?.email;
+                
+                const w=document.getElementById('stockWarning'); 
+                if(!pertenceAoUsuario && stockItem){ 
+                    w.innerHTML='<i class="fas fa-exclamation-triangle"></i> Este produto pertence a outro usuário!'; 
+                    w.style.color='var(--danger)';
+                } else if(stockQty===0){ 
+                    w.innerHTML='<i class="fas fa-exclamation-triangle"></i> Esgotado!'; 
+                    w.style.color='var(--danger)'; 
+                } else if(qty > stockQty){ 
+                    w.innerHTML=`<i class="fas fa-exclamation-triangle"></i> Estoque insuficiente! Disponível: ${stockQty}`; 
+                    w.style.color='var(--danger)'; 
+                } else if(stockQty<5){ 
+                    w.innerHTML=`<i class="fas fa-info-circle"></i> Disponível: ${stockQty}`; 
+                    w.style.color='var(--warning)'; 
+                } else{ 
+                    w.innerHTML=`<i class="fas fa-check-circle"></i> Disponível: ${stockQty}`; 
+                    w.style.color='var(--success)'; 
+                } 
+            }
+        }, 500);
+        
+        document.getElementById('requestQuantity')?.addEventListener('input', debouncedStockCheck);
+        
+        const debouncedRequestSearch = debounce(() => loadRequests(), 300);
+        document.getElementById('requestSearch')?.addEventListener('input', debouncedRequestSearch); 
+        document.getElementById('requestStatusFilter')?.addEventListener('change', () => loadRequests());
+        document.getElementById('dataInicial')?.addEventListener('change', () => loadRequests());
+        document.getElementById('dataFinal')?.addEventListener('change', () => loadRequests());
+        document.getElementById('limparDatasBtn')?.addEventListener('click', () => {
+            document.getElementById('dataInicial').value = '';
+            document.getElementById('dataFinal').value = '';
+            loadRequests();
+        });
+        
+        window.changePage = (page) => {
+            currentPage = page;
+            renderRequestsPage();
+            renderPagination();
+        };
+        
+        function closeLoginModal() { document.getElementById('loginModal').classList.remove('show'); }
+        window.closeLoginModal = closeLoginModal;
+        
+        document.getElementById('loginForm').addEventListener('submit', async(e)=>{ 
+            e.preventDefault(); 
+            showLoading(); 
+            try { 
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                
+                const success = await loginWithDatabase(email, password);
+                
+                if (success) { 
+                    closeLoginModal(); 
+                    showToast(`Bem-vindo, ${currentUser.nome}!`); 
+                    
+                    document.getElementById('userName').textContent = currentUser.nome;
+                    document.getElementById('userEmail').textContent = currentUser.email;
+                    
+                    setTimeout(() => {
+                        renderProductSelector('stockProductContainer', 'stockProductSearch', 'stockProductKey', 'stockProductOptions', (key, name) => {});
+                        renderProductSelector('requestProductContainer', 'requestProductSearch', 'requestProductKey', 'requestProductOptions', (key, name) => {
+                            const qty = document.getElementById('requestQuantity').value;
+                            if(qty) debouncedStockCheck();
+                        });
+                    }, 100);
+                    
+                    navigateTo('stock');
+                } else { 
+                    showToast('Email ou senha inválidos!', 'error'); 
+                } 
+            } catch(e) { 
+                console.error(e);
+                showToast('Erro ao fazer login!', 'error'); 
+            } finally { 
+                hideLoading(); 
+            } 
+        });
+        
+        document.getElementById('logoutBtn').addEventListener('click', () => { logoutDatabase(); });
+        
+        checkAuthState();
+    </script>
 </body>
 </html>
