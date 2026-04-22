@@ -237,7 +237,8 @@
                                 <thead>
                                     <tr><th>Produto</th><th>Código</th><th>Categoria</th><th>Quantidade</th><th>Estoque Mínimo</th><th>Status</th><th>Ações</th></tr>
                                 </thead>
-                                <tbody id="stockList"><tr><td colspan="7">Carregando...</td></tr></tbody>
+                                <tbody id="stockList"><tr><td colspan="7">Carregando...</td></tr>
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -279,7 +280,8 @@
                                 <thead>
                                     <tr><th>Protocolo</th><th>Produto</th><th>Qtd</th><th>Solicitante</th><th>Email do Solicitante</th><th>Nº Obra</th><th>Nome da Obra</th><th>Data/Hora Solicitação</th><th>Data de Conclusão</th><th>Status</th><th>Ações</th></tr>
                                 </thead>
-                                <tbody id="requestsList"><tr><td colspan="11">Carregando...</td></tr></tbody>
+                                <tbody id="requestsList"><tr><td colspan="11">Carregando...</td></tr>
+                                </tbody>
                             </table>
                         </div>
                         <div class="pagination-container" id="paginationContainer"></div>
@@ -323,33 +325,50 @@
         </div>
     </div>
 
-    <div class="modal" id="loginModal"><div class="modal-content"><div class="modal-header"><h2><i class="fas fa-sign-in-alt"></i> Login</h2><button class="btn btn-outline" onclick="closeLoginModal()">✕</button></div><div class="modal-body"><form id="loginForm"><div class="form-group"><label>E-mail</label><input type="email" class="form-control" id="loginEmail" required></div><div class="form-group"><label>Senha</label><input type="password" class="form-control" id="loginPassword" required></div><button type="submit" class="btn btn-primary" style="width:100%">Entrar</button></form><div style="text-align:center; margin-top:16px;"><a href="#" onclick="showRegister()" style="color: var(--primary);">Não tem conta? Cadastre-se</a></div></div></div></div>
-    <div class="modal" id="registerModal"><div class="modal-content"><div class="modal-header"><h2><i class="fas fa-user-plus"></i> Cadastro</h2><button class="btn btn-outline" onclick="closeRegisterModal()">✕</button></div><div class="modal-body"><form id="registerForm"><div class="form-group"><label>Nome</label><input type="text" class="form-control" id="registerName" required></div><div class="form-group"><label>E-mail</label><input type="email" class="form-control" id="registerEmail" required></div><div class="form-group"><label>Senha</label><input type="password" class="form-control" id="registerPassword" required></div><div class="form-group"><label>Confirmar Senha</label><input type="password" class="form-control" id="confirmPassword" required></div><button type="submit" class="btn btn-primary" style="width:100%">Cadastrar</button></form><div style="text-align:center; margin-top:16px;"><a href="#" onclick="showLogin()" style="color: var(--primary);">Já tem conta? Faça login</a></div></div></div></div>
+    <!-- Apenas modal de login - sem cadastro -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-sign-in-alt"></i> Login</h2>
+                <button class="btn btn-outline" onclick="closeLoginModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <div class="form-group"><label>E-mail</label><input type="email" class="form-control" id="loginEmail" required></div>
+                    <div class="form-group"><label>Senha</label><input type="password" class="form-control" id="loginPassword" required></div>
+                    <button type="submit" class="btn btn-primary" style="width:100%">Entrar</button>
+                </form>
+                <div style="text-align:center; margin-top:16px; color: var(--light-gray); font-size: 0.8rem;">
+                    <i class="fas fa-lock"></i> Acesso restrito a usuários autorizados
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="toast-container" id="toastContainer"></div>
     <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, runTransaction, serverTimestamp, push, onValue, set, get, update, query, orderByChild, limitToLast, startAt, endAt } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, runTransaction, serverTimestamp, push, onValue, set, get, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         
         const firebaseConfig = { apiKey: "AIzaSyCwTiqQBRBBYth4wJtjhdL1VQ0LZV7PKco", databaseURL: "https://almoxarifado-c2fbc-default-rtdb.firebaseio.com" };
         const app = initializeApp(firebaseConfig); const db = getDatabase(app); const auth = getAuth(app);
         let currentUser = null;
         let allRequests = [];
         let currentPage = 1;
-        const itemsPerPage = 50;
+        const itemsPerPage = 20;
         
         // Cache local para reduzir leituras do Firebase
         let localStockCache = null;
         let localRequestsCache = null;
         let lastStockSync = 0;
         let lastRequestsSync = 0;
-        const SYNC_INTERVAL = 15000; // Sincroniza a cada 30 segundos em vez de tempo real
+        const SYNC_INTERVAL = 15000;
         
-      const allProducts = [
-    { key: "110015", name: "RELIGADOR 15KV 630A 3F AUT 12,5KA", category: "RELIGADORES", min: 2 },
+        const allProducts = [
+  { key: "110015", name: "RELIGADOR 15KV 630A 3F AUT 12,5KA", category: "RELIGADORES", min: 2 },
     { key: "111004", name: "RELIGADOR 36KV 630A 3F AUT 12,5KA", category: "RELIGADORES", min: 2 },
     { key: "140033", name: "RELIG AUT 3F 15K 630A 12,5K AVAR 140003", category: "RELIGADORES", min: 2 },
     { key: "210132", name: "TRAFO 1FF 10,0KVA 15,0KV AVARIADO", category: "TRANSFORMADORES", min: 2 },
@@ -857,10 +876,7 @@
     { key: "7940002", name: "SUCATA TRAFO DISTRIBUICAO", category: "SUCATAS", min: 1 },
     { key: "7942038", name: "SUCATA ELETRICA-ELETRONICA", category: "SUCATAS", min: 1 },
     { key: "9174982", name: "MOLDURA POLIMERICA FIO TERRA 30X 3000MM", category: "MOLDURAS", min: 5 }
-];
-
-console.log('Total de produtos:', allProducts.length);
-console.log('Produtos carregados com sucesso!');
+        ];
         
         const products = {};
         allProducts.forEach(p => { products[p.key] = { name: p.name, min: p.min, category: p.category }; });
@@ -868,7 +884,6 @@ console.log('Produtos carregados com sucesso!');
         let stockData = {};
         let filteredStockItems = [];
         
-        // Debounce para evitar múltiplas chamadas
         function debounce(func, wait) {
             let timeout;
             return function executedFunction(...args) {
@@ -937,17 +952,11 @@ console.log('Produtos carregados com sucesso!');
             const debouncedRender = debounce(() => {
                 const filtered = filterProducts(searchInput.value);
                 renderOptions(filtered);
+                optionsContainer.style.display = 'block';
             }, 300);
             
             searchInput.addEventListener('input', debouncedRender);
-            
             renderOptions(allProducts);
-            
-            document.addEventListener('click', (e) => {
-                if (!containerId || !document.getElementById(containerId)?.contains(e.target)) {
-                    optionsContainer.style.display = 'none';
-                }
-            });
             
             searchInput.addEventListener('click', () => {
                 const filtered = filterProducts(searchInput.value);
@@ -1025,16 +1034,22 @@ console.log('Produtos carregados com sucesso!');
                 const statusText = q === 0 ? 'Esgotado' : (q < min ? 'Baixo' : 'Normal');
                 const statusClass = status === 'danger' ? 'badge-danger' : (status === 'warning' ? 'badge-warning' : 'badge-success');
                 
-                html += `<tr><td><strong>${escapeHtml(p.name)}</strong><div class="product-category-badge">${p.category}</div></td><td><code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 6px;">${p.key}</code></td><td><span style="color: var(--primary);">${p.category}</span></td><td><strong style="font-size: 1.1rem;">${q}</strong></td><td>${min}</td><td><span class="badge ${statusClass}">${statusText}</span></td><td><button class="btn btn-outline" onclick="editStock('${p.key}','${escapeHtml(p.name)}',${q})" style="padding:6px 12px;"><i class="fas fa-edit"></i></button><button class="btn btn-danger" onclick="deleteStock('${p.key}','${escapeHtml(p.name)}')" style="padding:6px 12px; margin-left: 5px;"><i class="fas fa-trash"></i></button></td></tr>`;
+                html += `<tr>
+                    <td><strong>${escapeHtml(p.name)}</strong><div class="product-category-badge">${p.category}</div></td>
+                    <td><code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 6px;">${p.key}</code></td>
+                    <td><span style="color: var(--primary);">${p.category}</span></td>
+                    <td><strong style="font-size: 1.1rem;">${q}</strong></td>
+                    <td>${min}</td>
+                    <td><span class="badge ${statusClass}">${statusText}</span></td>
+                    <td><button class="btn btn-outline" onclick="editStock('${p.key}','${escapeHtml(p.name)}',${q})" style="padding:6px 12px;"><i class="fas fa-edit"></i></button><button class="btn btn-danger" onclick="deleteStock('${p.key}','${escapeHtml(p.name)}')" style="padding:6px 12px; margin-left: 5px;"><i class="fas fa-trash"></i></button></td>
+                </tr>`;
             });
             tbody.innerHTML = html;
         }
         
-        // Load stock with caching - reduz tráfego usando cache
         function loadStock() { 
             const now = Date.now();
             if (localStockCache && (now - lastStockSync) < SYNC_INTERVAL) {
-                // Usa cache se estiver dentro do intervalo
                 stockData = localStockCache;
                 filterAndSortStock();
                 return;
@@ -1045,7 +1060,7 @@ console.log('Produtos carregados com sucesso!');
                 localStockCache = {...stockData};
                 lastStockSync = now;
                 filterAndSortStock();
-            }, { onlyOnce: true }); // onlyOnce reduz tráfego significativamente
+            }, { onlyOnce: true });
         }
         
         window.editStock = async function(id, name, curr){ 
@@ -1055,7 +1070,6 @@ console.log('Produtos carregados com sucesso!');
                 try{ 
                     await set(ref(db,`estoque/${id}`),{ nome:name, quantidade:parseInt(n), cadastradoPor:currentUser?.email, dataCadastro:serverTimestamp() }); 
                     showToast('Estoque atualizado!');
-                    // Invalida cache após atualização
                     localStockCache = null;
                     loadStock();
                 }catch(e){ showToast('Erro!','error'); }finally{ hideLoading(); } 
@@ -1167,7 +1181,6 @@ console.log('Produtos carregados com sucesso!');
             const pk = document.getElementById('requestProductKey').value;
             const qty = parseInt(document.getElementById('requestQuantity').value);
             if(pk && qty){ 
-                // Usa cache local quando possível
                 const stockQty = stockData[pk]?.quantidade || 0;
                 const w=document.getElementById('stockWarning'); 
                 if(stockQty===0){ w.innerHTML='<i class="fas fa-exclamation-triangle"></i> Esgotado!'; w.style.color='var(--danger)'; }
@@ -1315,11 +1328,9 @@ console.log('Produtos carregados com sucesso!');
             tbody.innerHTML = html;
         }
         
-        // Load requests with caching - reduz tráfego usando cache
         function loadRequests() { 
             const now = Date.now();
             if (localRequestsCache && (now - lastRequestsSync) < SYNC_INTERVAL) {
-                // Usa cache se estiver dentro do intervalo
                 processRequests(localRequestsCache);
                 return;
             }
@@ -1329,7 +1340,7 @@ console.log('Produtos carregados com sucesso!');
                 localRequestsCache = reqs;
                 lastRequestsSync = now;
                 processRequests(reqs);
-            }, { onlyOnce: true }); // onlyOnce reduz tráfego significativamente
+            }, { onlyOnce: true });
         }
         
         function processRequests(reqs) {
@@ -1491,11 +1502,8 @@ console.log('Produtos carregados com sucesso!');
             renderPagination();
         };
         
-        window.showLogin = () => { document.getElementById('registerModal').classList.remove('show'); document.getElementById('loginModal').classList.add('show'); };
-        window.showRegister = () => { document.getElementById('loginModal').classList.remove('show'); document.getElementById('registerModal').classList.add('show'); };
         function closeLoginModal() { document.getElementById('loginModal').classList.remove('show'); }
-        function closeRegisterModal() { document.getElementById('registerModal').classList.remove('show'); }
-        window.closeLoginModal = closeLoginModal; window.closeRegisterModal = closeRegisterModal;
+        window.closeLoginModal = closeLoginModal;
         
         document.getElementById('loginForm').addEventListener('submit', async(e)=>{ 
             e.preventDefault(); 
@@ -1507,23 +1515,6 @@ console.log('Produtos carregados com sucesso!');
                 navigateTo('stock'); 
             }catch(e){ 
                 showToast('Erro no login! Verifique suas credenciais.','error'); 
-            }finally{ 
-                hideLoading(); 
-            } 
-        });
-        
-        document.getElementById('registerForm').addEventListener('submit', async(e)=>{ 
-            e.preventDefault(); 
-            const name=document.getElementById('registerName').value, email=document.getElementById('registerEmail').value, pass=document.getElementById('registerPassword').value, conf=document.getElementById('confirmPassword').value; 
-            if(pass!==conf){ showToast('Senhas não coincidem!','error'); return; } 
-            if(pass.length<6){ showToast('Mínimo 6 caracteres!','error'); return; } 
-            showLoading(); 
-            try{ 
-                await createUserWithEmailAndPassword(auth,email,pass); 
-                closeRegisterModal(); 
-                showToast('Cadastro realizado! Faça login.'); 
-            }catch(e){ 
-                showToast('Erro no cadastro! Email pode já estar em uso.','error'); 
             }finally{ 
                 hideLoading(); 
             } 
@@ -1544,14 +1535,12 @@ console.log('Produtos carregados com sucesso!');
                     renderProductSelector('stockProductContainer', 'stockProductSearch', 'stockProductKey', 'stockProductOptions', (key, name) => {});
                     renderProductSelector('requestProductContainer', 'requestProductSearch', 'requestProductKey', 'requestProductOptions', (key, name) => {
                         const qty = document.getElementById('requestQuantity').value;
-                        if(qty) {
-                            debouncedStockCheck();
-                        }
+                        if(qty) debouncedStockCheck();
                     });
                 }, 100);
                 navigateTo('stock'); 
             }else{ 
-                showLogin(); 
+                document.getElementById('loginModal').classList.add('show'); 
             } 
         });
     </script>
